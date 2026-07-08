@@ -19,14 +19,14 @@ security = HTTPBearer()
 
 
 class UserRegister(BaseModel):
-    name: str
-    email: str
+    Username: str
+    Email: str
     phone: str
-    password: str
+    Password: str
     role: str
 class UserLogin(BaseModel):
-    email: str
-    password: str
+    Email: str
+    Password: str
 
 
 @app.get("/")
@@ -50,13 +50,13 @@ def contact():
 @app.post("/register")
 def register(user: UserRegister, db: Session = Depends(get_db)):
 
-    hashed_password = pwd_context.hash(user.password)
+    hashed_password = pwd_context.hash(user.Password)
 
     db_user = User(
-        name=user.name,
-        email=user.email,
+        Userame=user.Username,
+        Email=user.Email,
         phone=user.phone,
-        password=hashed_password,
+        Password=hashed_password,
         role=user.role
     )
 
@@ -70,7 +70,7 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 @app.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
 
-    stored_user = db.query(User).filter(User.email == user.email).first()
+    stored_user = db.query(User).filter(User.Email == user.Email).first()
 
     if stored_user is None:
         raise HTTPException(
@@ -78,7 +78,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             detail="User not found"
         )
 
-    if not pwd_context.verify(user.password, stored_user.password):
+    if not pwd_context.verify(user.Password, stored_user.Password):
         raise HTTPException(
             status_code=401,
             detail="Invalid password"
@@ -86,7 +86,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
     token = jwt.encode(
         {
-            "email": stored_user.email,
+            "Email": stored_user.email,
             "role": stored_user.role
         },
         SECRET_KEY,

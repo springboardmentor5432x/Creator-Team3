@@ -22,6 +22,9 @@ class CreatorProfile(Base):
     platform = Column(String, nullable=False)
     followers = Column(Integer, default=0)
     engagement_rate = Column(Float, default=0.0)
+    bio = Column(String, default="")
+    language = Column(String, default="English")
+    region = Column(String, default="United States")
 
     user = relationship("User", back_populates="creator_profiles")
     social_accounts = relationship("SocialAccount", back_populates="creator_profile", cascade="all, delete-orphan")

@@ -6,7 +6,7 @@ import bcrypt
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from database import engine, Base, get_db
-from models import User
+from models import User, CreatorProfile
 
 app = FastAPI()
 
@@ -35,6 +35,18 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     Email: str
     Password: str
+
+class AccountUpdate(BaseModel):
+    Username: str
+    Email: str
+    phone: str
+    Password: str = None
+
+class ProfileUpdate(BaseModel):
+    bio: str
+    language: str
+    region: str
+    platform: str
 
 
 @app.get("/")
@@ -221,5 +233,104 @@ def get_audience(credentials: HTTPAuthorizationCredentials = Depends(security)):
             {"name": "Male", "value": 36},
             {"name": "Non-binary / Other", "value": 6}
         ]
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+
+@app.get("/api/user/details")
+def get_user_details(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("Email")
+        user = db.query(User).filter(User.Email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == user.id).first()
+        if not profile:
+            profile = CreatorProfile(
+                user_id=user.id,
+                platform="YouTube",
+                followers=520000,
+                engagement_rate=5.6,
+                bio="Tech enthusiast & content creator.",
+                language="English",
+                region="United States"
+            )
+            db.add(profile)
+            db.commit()
+            db.refresh(profile)
+
+        return {
+            "account": {
+                "Username": user.Username,
+                "Email": user.Email,
+                "phone": user.phone,
+                "role": user.role
+            },
+            "profile": {
+                "bio": profile.bio,
+                "language": profile.language,
+                "region": profile.region,
+                "platform": profile.platform
+            }
+        }
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+
+@app.put("/api/user/account")
+def update_user_account(data: AccountUpdate, credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        current_email = payload.get("Email")
+        user = db.query(User).filter(User.Email == current_email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if data.Email != user.Email:
+            existing = db.query(User).filter(User.Email == data.Email).first()
+            if existing:
+                raise HTTPException(status_code=400, detail="Email already in use")
+        
+        user.Username = data.Username
+        user.Email = data.Email
+        user.phone = data.phone
+        if data.Password:
+            user.Password = bcrypt.hashpw(data.Password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        db.commit()
+        
+        new_token = jwt.encode(
+            {"Email": user.Email, "role": user.role},
+            SECRET_KEY,
+            algorithm=ALGORITHM
+        )
+        return {"message": "Account updated successfully", "access_token": new_token}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+
+@app.put("/api/user/profile")
+def update_user_profile(data: ProfileUpdate, credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("Email")
+        user = db.query(User).filter(User.Email == email).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == user.id).first()
+        if not profile:
+            profile = CreatorProfile(user_id=user.id)
+            db.add(profile)
+        
+        profile.bio = data.bio
+        profile.language = data.language
+        profile.region = data.region
+        profile.platform = data.platform
+        
+        db.commit()
+        return {"message": "Profile updated successfully"}
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid Token")

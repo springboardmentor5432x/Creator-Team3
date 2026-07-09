@@ -18,7 +18,7 @@ function App() {
   return (
     <>
       {token ? (
-        <AnalyticsDashboard token={token} onLogout={handleLogout} />
+        <AnalyticsDashboard token={token} onLogout={handleLogout} onAuthUpdate={handleAuthSuccess} />
       ) : (
         <AuthPage onAuthSuccess={handleAuthSuccess} />
       )}

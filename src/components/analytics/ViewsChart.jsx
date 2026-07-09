@@ -27,8 +27,8 @@ const CustomTooltip = ({ active, payload, label }) => {
         ))}
         <style>{`
           .custom-tooltip {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 12px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);

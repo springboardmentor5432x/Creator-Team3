@@ -24,8 +24,8 @@ const CustomTooltip = ({ active, payload }) => {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: 6px;
             font-family: 'Inter', sans-serif;

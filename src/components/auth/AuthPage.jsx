@@ -99,14 +99,14 @@ export default function AuthPage({ onAuthSuccess }) {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         .auth-container {
-          background-color: #0b0f19;
+          background-color: var(--bg-primary);
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 2rem;
           font-family: 'Inter', sans-serif;
-          color: #f8fafc;
+          color: var(--text-primary);
           position: relative;
           overflow: hidden;
         }
@@ -119,7 +119,7 @@ export default function AuthPage({ onAuthSuccess }) {
           width: 300px;
           height: 300px;
           border-radius: 50%;
-          background: rgba(59, 130, 246, 0.15);
+          background: var(--accent-glow);
           filter: blur(80px);
           pointer-events: none;
         }
@@ -131,16 +131,16 @@ export default function AuthPage({ onAuthSuccess }) {
           width: 350px;
           height: 350px;
           border-radius: 50%;
-          background: rgba(139, 92, 246, 0.15);
+          background: var(--accent-glow);
           filter: blur(90px);
           pointer-events: none;
         }
 
         .auth-card {
-          background: rgba(30, 41, 59, 0.6);
+          background: var(--bg-secondary);
+          border: 1px solid var(--border-color);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
           border-radius: 24px;
           padding: 2.5rem;
           width: 100%;
@@ -160,20 +160,20 @@ export default function AuthPage({ onAuthSuccess }) {
           font-weight: 700;
           letter-spacing: -0.03em;
           margin-bottom: 0.5rem;
-          background: linear-gradient(135deg, #f8fafc 0%, #3b82f6 100%);
+          background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
 
         .auth-subtitle {
           font-size: 0.875rem;
-          color: #64748b;
+          color: var(--text-secondary);
         }
 
         .auth-tabs {
           display: flex;
           background: rgba(15, 23, 42, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 4px;
           margin-bottom: 2rem;
@@ -183,7 +183,7 @@ export default function AuthPage({ onAuthSuccess }) {
           flex: 1;
           background: transparent;
           border: none;
-          color: #94a3b8;
+          color: var(--text-secondary);
           padding: 10px;
           font-size: 0.875rem;
           font-weight: 600;
@@ -193,9 +193,9 @@ export default function AuthPage({ onAuthSuccess }) {
         }
 
         .auth-tab.active {
-          background: #3b82f6;
-          color: #f8fafc;
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+          background: var(--accent-primary);
+          color: var(--text-primary);
+          box-shadow: 0 4px 12px var(--accent-glow);
         }
 
         .auth-form {
@@ -213,17 +213,17 @@ export default function AuthPage({ onAuthSuccess }) {
         .form-label {
           font-size: 0.8125rem;
           font-weight: 600;
-          color: #94a3b8;
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
 
         .form-input {
           background: rgba(15, 23, 42, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px 16px;
-          color: #f8fafc;
+          color: var(--text-primary);
           font-size: 0.9375rem;
           transition: all 0.2s ease;
           box-sizing: border-box;
@@ -232,17 +232,17 @@ export default function AuthPage({ onAuthSuccess }) {
 
         .form-input:focus {
           outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+          border-color: var(--accent-primary);
+          box-shadow: 0 0 0 3px var(--accent-glow);
           background: rgba(15, 23, 42, 0.7);
         }
 
         .form-select {
           background: rgba(15, 23, 42, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px 16px;
-          color: #f8fafc;
+          color: var(--text-primary);
           font-size: 0.9375rem;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -252,18 +252,18 @@ export default function AuthPage({ onAuthSuccess }) {
 
         .form-select:focus {
           outline: none;
-          border-color: #3b82f6;
+          border-color: var(--accent-primary);
         }
 
         .form-select option {
-          background-color: #0b0f19;
-          color: #f8fafc;
+          background-color: var(--bg-primary);
+          color: var(--text-primary);
         }
 
         .auth-btn {
-          background: #3b82f6;
+          background: var(--accent-primary);
           border: none;
-          color: #f8fafc;
+          color: var(--text-primary);
           padding: 14px;
           border-radius: 12px;
           font-size: 0.9375rem;
@@ -271,13 +271,13 @@ export default function AuthPage({ onAuthSuccess }) {
           cursor: pointer;
           transition: all 0.2s ease;
           margin-top: 1rem;
-          box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+          box-shadow: 0 4px 15px var(--accent-glow);
         }
 
         .auth-btn:hover {
-          background: #2563eb;
+          filter: brightness(1.1);
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 6px 20px var(--accent-glow);
         }
 
         .auth-btn:active {
@@ -285,7 +285,7 @@ export default function AuthPage({ onAuthSuccess }) {
         }
 
         .auth-btn:disabled {
-          background: #1d4ed8;
+          background: var(--accent-primary);
           opacity: 0.6;
           cursor: not-allowed;
           transform: none;

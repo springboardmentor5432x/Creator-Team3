@@ -5,7 +5,8 @@ const themesList = [
   { id: 'aurora', name: 'Emerald Aurora', accent: '#10b981', bg: '#06140f', colors: ['#06140f', '#102c22', '#10b981'] },
   { id: 'amethyst', name: 'Amethyst Neon', accent: '#8b5cf6', bg: '#0f0b15', colors: ['#0f0b15', '#2b1b41', '#8b5cf6'] },
   { id: 'rose', name: 'Sunset Rose', accent: '#f43f5e', bg: '#18090f', colors: ['#18090f', '#401224', '#f43f5e'] },
-  { id: 'cyberpunk', name: 'Cyberpunk 2077', accent: '#00f0ff', bg: '#0a0a0c', colors: ['#0a0a0c', '#1a1a24', '#f7e018'] }
+  { id: 'cyberpunk', name: 'Cyberpunk 2077', accent: '#00f0ff', bg: '#0a0a0c', colors: ['#0a0a0c', '#1a1a24', '#f7e018'] },
+  { id: 'light', name: 'Snow Alabaster', accent: '#2563eb', bg: '#f1f5f9', colors: ['#f1f5f9', '#ffffff', '#2563eb'] }
 ];
 
 export default function SettingsView({ token, onThemeChange, currentTheme, onAuthUpdate }) {
@@ -165,7 +166,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
 
         .settings-nav-btn.active {
           background: var(--accent-primary);
-          color: #f8fafc;
+          color: #ffffff;
           box-shadow: 0 4px 12px var(--accent-glow);
         }
 
@@ -181,6 +182,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         .settings-title {
           font-size: 1.375rem;
           font-weight: 700;
+          color: var(--text-primary);
           margin-bottom: 0.5rem;
         }
 
@@ -218,7 +220,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         }
 
         .settings-input {
-          background: rgba(15, 23, 42, 0.5);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 10px;
           padding: 10px 14px;
@@ -236,7 +238,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         }
 
         .settings-select {
-          background: rgba(15, 23, 42, 0.5);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 10px;
           padding: 10px 14px;
@@ -258,7 +260,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         }
 
         .settings-textarea {
-          background: rgba(15, 23, 42, 0.5);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 10px;
           padding: 10px 14px;
@@ -279,7 +281,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         .save-btn {
           background: var(--accent-primary);
           border: none;
-          color: #f8fafc;
+          color: #ffffff;
           padding: 12px 24px;
           border-radius: 10px;
           font-size: 0.875rem;
@@ -313,7 +315,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         }
 
         .theme-card {
-          background: rgba(15, 23, 42, 0.3);
+          background: var(--input-bg);
           border: 2px solid var(--border-color);
           border-radius: 16px;
           padding: 1.25rem;
@@ -340,10 +342,10 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         .theme-swatch {
           display: flex;
           gap: 4px;
-          background: #0f172a;
+          background: var(--bg-primary);
           padding: 6px;
           border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--border-color);
         }
 
         .swatch-color {

@@ -8,10 +8,9 @@ import SettingsView from './SettingsView';
 
 import { kpiData as dummyKpiData, platformPerformance as dummyPerformance } from '../../data/dummyAnalytics';
 
-export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
+export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, currentTheme, onThemeChange }) {
   const [selectedPlatform, setSelectedPlatform] = useState('All');
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [theme, setTheme] = useState(localStorage.getItem('creatoriq_theme') || 'midnight');
   
   const [kpiData, setKpiData] = useState(dummyKpiData);
   const [platformPerformance, setPlatformPerformance] = useState(dummyPerformance);
@@ -20,11 +19,6 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
   const [audienceData, setAudienceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const handleThemeChange = (newTheme) => {
-    localStorage.setItem('creatoriq_theme', newTheme);
-    setTheme(newTheme);
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -126,7 +120,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
   const activeKpiData = getFilteredKpiData();
 
   return (
-    <div className="dashboard-container" data-theme={theme}>
+    <div className="dashboard-container" data-theme={currentTheme}>
       {/* Dynamic Theme Color Tokens and Dashboard styles */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -206,6 +200,17 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
           --accent-glow: rgba(0, 240, 255, 0.15);
           --text-primary: #ffffff;
           --text-secondary: #f7e018;
+        }
+
+        .dashboard-container[data-theme="light"] {
+          --bg-primary: #f1f5f9;
+          --bg-secondary: rgba(255, 255, 255, 0.75);
+          --border-color: rgba(15, 23, 42, 0.08);
+          --accent-primary: #2563eb;
+          --accent-secondary: #db2777;
+          --accent-glow: rgba(37, 99, 235, 0.08);
+          --text-primary: #0f172a;
+          --text-secondary: #475569;
         }
 
         /* Ambient Glow Backgrounds */
@@ -437,8 +442,8 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
       ) : activeTab === 'settings' ? (
         <SettingsView 
           token={token} 
-          onThemeChange={handleThemeChange} 
-          currentTheme={theme} 
+          onThemeChange={onThemeChange} 
+          currentTheme={currentTheme} 
           onAuthUpdate={onAuthUpdate}
         />
       ) : (

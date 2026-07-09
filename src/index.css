@@ -15,6 +15,12 @@
   --accent-glow: rgba(59, 130, 246, 0.15);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
 }
 
 [data-theme="aurora"] {
@@ -26,6 +32,12 @@
   --accent-glow: rgba(16, 185, 129, 0.15);
   --text-primary: #f0fdf4;
   --text-secondary: #a7f3d0;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
 }
 
 [data-theme="amethyst"] {
@@ -37,6 +49,12 @@
   --accent-glow: rgba(139, 92, 246, 0.15);
   --text-primary: #faf5ff;
   --text-secondary: #e9d5ff;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
 }
 
 [data-theme="rose"] {
@@ -48,6 +66,12 @@
   --accent-glow: rgba(244, 63, 94, 0.15);
   --text-primary: #fff1f2;
   --text-secondary: #fecdd3;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
 }
 
 [data-theme="cyberpunk"] {
@@ -59,6 +83,29 @@
   --accent-glow: rgba(0, 240, 255, 0.15);
   --text-primary: #ffffff;
   --text-secondary: #f7e018;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #f7e018;
+  --trend-neg: #ef4444;
+  --trend-pos-bg: rgba(247, 224, 24, 0.1);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f1f5f9;
+  --bg-secondary: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(15, 23, 42, 0.08);
+  --accent-primary: #2563eb;
+  --accent-secondary: #db2777;
+  --accent-glow: rgba(37, 99, 235, 0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --grid-color: rgba(15, 23, 42, 0.06);
+  --input-bg: rgba(255, 255, 255, 0.85);
+  --trend-pos: #059669;
+  --trend-neg: #dc2626;
+  --trend-pos-bg: rgba(5, 150, 105, 0.08);
+  --trend-neg-bg: rgba(220, 38, 38, 0.08);
 }
 
 body {

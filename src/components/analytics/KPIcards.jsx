@@ -181,12 +181,12 @@ export default function KPICards({ data = defaultKpiData }) {
           width: fit-content;
         }
         .kpi-trend.positive {
-          background: rgba(16, 185, 129, 0.12);
-          color: #34d399;
+          background: var(--trend-pos-bg);
+          color: var(--trend-pos);
         }
         .kpi-trend.negative {
-          background: rgba(239, 68, 68, 0.12);
-          color: #f87171;
+          background: var(--trend-neg-bg);
+          color: var(--trend-neg);
         }
         .kpi-trend svg {
           width: 12px;

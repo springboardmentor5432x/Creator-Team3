@@ -219,7 +219,7 @@ export default function AuthPage({ onAuthSuccess }) {
         }
 
         .form-input {
-          background: rgba(15, 23, 42, 0.5);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px 16px;
@@ -234,11 +234,12 @@ export default function AuthPage({ onAuthSuccess }) {
           outline: none;
           border-color: var(--accent-primary);
           box-shadow: 0 0 0 3px var(--accent-glow);
-          background: rgba(15, 23, 42, 0.7);
+          background: var(--input-bg);
+          filter: brightness(0.95);
         }
 
         .form-select {
-          background: rgba(15, 23, 42, 0.5);
+          background: var(--input-bg);
           border: 1px solid var(--border-color);
           border-radius: 12px;
           padding: 12px 16px;

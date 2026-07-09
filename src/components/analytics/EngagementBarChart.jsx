@@ -124,7 +124,7 @@ export default function EngagementBarChart({ data = defaultData }) {
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             barGap={6}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
             <XAxis 
               dataKey="platform" 
               stroke="#64748b" 

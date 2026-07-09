@@ -130,7 +130,7 @@ export default function FollowersChart({ data = defaultData }) {
                 <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
             <XAxis 
               dataKey="month" 
               stroke="#64748b" 

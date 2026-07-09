@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from database import engine, Base, get_db
@@ -20,10 +20,7 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
+# Using direct bcrypt for hashing and verification
 SECRET_KEY = "creatoriq_secret_key"
 ALGORITHM = "HS256"
 security = HTTPBearer()
@@ -69,7 +66,7 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
             detail="Email already registered"
         )
 
-    hashed_password = pwd_context.hash(user.Password)
+    hashed_password = bcrypt.hashpw(user.Password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
     db_user = User(
         Username=user.Username,
@@ -97,7 +94,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             detail="User not found"
         )
 
-    if not pwd_context.verify(user.Password, stored_user.Password):
+    if not bcrypt.checkpw(user.Password.encode('utf-8'), stored_user.Password.encode('utf-8')):
         raise HTTPException(
             status_code=401,
             detail="Invalid password"

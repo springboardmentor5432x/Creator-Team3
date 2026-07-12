@@ -132,7 +132,7 @@ export const platformPerformance = [
     color: '#E1306C'
   },
   {
-    platform: 'TikTok',
+    platform: 'LinkedIn',
     followers: 234300,
     engagementRate: 7.8,
     posts: 56,
@@ -141,7 +141,7 @@ export const platformPerformance = [
     comments: 19300,
     shares: 15200,
     watchTime: 85000,
-    color: '#000000'
+    color: '#0077b5'
   },
   {
     platform: 'Twitch',

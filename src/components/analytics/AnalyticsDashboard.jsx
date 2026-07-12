@@ -5,12 +5,15 @@ import FollowersChart from './FollowersChart';
 import AudiencePieChart from './AudiencePieChart';
 import EngagementBarChart from './EngagementBarChart';
 import SettingsView from './SettingsView';
+import NotificationsPanel from './NotificationsPanel';
 
 import { kpiData as dummyKpiData, platformPerformance as dummyPerformance } from '../../data/dummyAnalytics';
 
 export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, currentTheme, onThemeChange }) {
   const [selectedPlatform, setSelectedPlatform] = useState('All');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifPanel, setShowNotifPanel] = useState(false);
   
   const [kpiData, setKpiData] = useState(dummyKpiData);
   const [platformPerformance, setPlatformPerformance] = useState(dummyPerformance);
@@ -57,6 +60,13 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
           setAudienceData(audience);
         }
 
+        // Fetch notifications
+        const resNotifs = await fetch(`${baseUrl}/api/notifications`, { headers });
+        if (resNotifs.ok) {
+          const notifs = await resNotifs.json();
+          setNotifications(notifs);
+        }
+
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Error loading data from server. Displaying cached local copy.');
@@ -69,6 +79,48 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
       fetchData();
     }
   }, [token]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/notifications/${id}/read`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+      }
+    } catch (err) {
+      console.error("Error marking notification read:", err);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/notifications/read-all`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      }
+    } catch (err) {
+      console.error("Error marking all notifications read:", err);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/notifications/clear`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Error clearing notifications:", err);
+    }
+  };
 
   // Filter KPI data based on selected platform
   const getFilteredKpiData = () => {
@@ -387,6 +439,66 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
           z-index: 5;
         }
 
+        /* Notification Bell Styling */
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 1.25rem;
+        }
+
+        .notif-bell-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .notif-bell-btn {
+          background: transparent;
+          border: 1px solid var(--border-color);
+          color: var(--text-secondary);
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.2s ease;
+          padding: 0;
+        }
+
+        .notif-bell-btn:hover, .notif-bell-btn.active {
+          background: var(--accent-glow);
+          color: var(--accent-primary);
+          border-color: var(--accent-primary);
+          box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .bell-icon {
+          width: 18px;
+          height: 18px;
+        }
+
+        .bell-badge {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          background: var(--accent-secondary);
+          color: #ffffff;
+          font-size: 0.65rem;
+          font-weight: 700;
+          min-width: 15px;
+          height: 15px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 3px;
+          box-sizing: border-box;
+          border: 2px solid var(--bg-primary);
+        }
+
         @media (max-width: 1024px) {
           .dashboard-row {
             grid-template-columns: 1fr;
@@ -428,6 +540,24 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
             </button>
           </div>
 
+          <div className="notif-bell-container">
+            <button 
+              type="button" 
+              className={`notif-bell-btn ${showNotifPanel ? 'active' : ''}`}
+              onClick={() => setShowNotifPanel(!showNotifPanel)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="bell-icon">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              {notifications.filter(n => !n.read).length > 0 && (
+                <span className="bell-badge">
+                  {notifications.filter(n => !n.read).length}
+                </span>
+              )}
+            </button>
+          </div>
+
           <button type="button" className="logout-btn" onClick={onLogout}>
             Logout
           </button>
@@ -451,7 +581,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
           {/* Dashboard Filters Row */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem', position: 'relative', zIndex: 10 }}>
             <div className="filter-group">
-              {['All', 'YouTube', 'Instagram', 'TikTok', 'Twitch'].map((platform) => (
+              {['All', 'YouTube', 'Instagram', 'LinkedIn', 'Twitch'].map((platform) => (
                 <button
                   key={platform}
                   className={`filter-btn ${selectedPlatform === platform ? 'active' : ''}`}
@@ -480,6 +610,15 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
             <EngagementBarChart data={platformPerformance} />
           </section>
         </>
+      )}
+      {showNotifPanel && (
+        <NotificationsPanel 
+          notifications={notifications}
+          onMarkAsRead={handleMarkAsRead}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          onClearAll={handleClearAll}
+          onClose={() => setShowNotifPanel(false)}
+        />
       )}
     </div>
   );

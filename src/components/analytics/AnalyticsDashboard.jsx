@@ -624,7 +624,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
               backdropFilter: 'blur(12px)',
               display: 'flex',
               alignItems: 'center',
-              justify-content: 'space-between'
+              justifyContent: 'space-between'
             }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>

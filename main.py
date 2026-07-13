@@ -4,29 +4,36 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
+
 from database import engine, Base, get_db
 from models import User
 
 app = FastAPI()
+
 Base.metadata.create_all(bind=engine)
+
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
+
 SECRET_KEY = "creatoriq_secret_key"
 ALGORITHM = "HS256"
+
 security = HTTPBearer()
 
 
 class UserRegister(BaseModel):
-    Username: str
-    Email: str
+    username: str
+    email: str
     phone: str
-    Password: str
+    password: str
     role: str
+
+
 class UserLogin(BaseModel):
-    Email: str
-    Password: str
+    email: str
+    password: str
 
 
 @app.get("/")
@@ -50,13 +57,21 @@ def contact():
 @app.post("/register")
 def register(user: UserRegister, db: Session = Depends(get_db)):
 
-    hashed_password = pwd_context.hash(user.Password)
+    existing_user = db.query(User).filter(User.email == user.email).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+
+    hashed_password = pwd_context.hash(user.password)
 
     db_user = User(
-        Userame=user.Username,
-        Email=user.Email,
+        username=user.username,
+        email=user.email,
         phone=user.phone,
-        Password=hashed_password,
+        password=hashed_password,
         role=user.role
     )
 
@@ -67,10 +82,12 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
     return {
         "message": "User registered successfully"
     }
+
+
 @app.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
 
-    stored_user = db.query(User).filter(User.Email == user.Email).first()
+    stored_user = db.query(User).filter(User.email == user.email).first()
 
     if stored_user is None:
         raise HTTPException(
@@ -78,7 +95,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             detail="User not found"
         )
 
-    if not pwd_context.verify(user.Password, stored_user.Password):
+    if not pwd_context.verify(user.password, stored_user.password):
         raise HTTPException(
             status_code=401,
             detail="Invalid password"
@@ -86,7 +103,7 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 
     token = jwt.encode(
         {
-            "Email": stored_user.email,
+            "email": stored_user.email,
             "role": stored_user.role
         },
         SECRET_KEY,
@@ -97,12 +114,14 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer"
     }
+
+
 @app.get("/user")
-def get_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
 
     token = credentials.credentials
-
-    print("Received Token:", token)
 
     try:
         payload = jwt.decode(
@@ -111,15 +130,12 @@ def get_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
             algorithms=[ALGORITHM]
         )
 
-        print("Payload:", payload)
-
         return {
             "message": "Authorized User",
             "user": payload
         }
 
-    except JWTError as e:
-        print("JWT Error:", repr(e))
+    except JWTError:
         raise HTTPException(
             status_code=401,
             detail="Invalid Token"

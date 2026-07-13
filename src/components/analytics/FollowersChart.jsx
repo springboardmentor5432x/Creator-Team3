@@ -31,8 +31,8 @@ const CustomTooltip = ({ active, payload, label }) => {
         )}
         <style>{`
           .custom-tooltip {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 12px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -72,10 +72,10 @@ export default function FollowersChart({ data = defaultData }) {
     <div className="chart-card">
       <style>{`
         .chart-card {
-          background: rgba(30, 41, 59, 0.7);
+          background: var(--bg-secondary);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 1.5rem;
           width: 100%;
@@ -97,12 +97,12 @@ export default function FollowersChart({ data = defaultData }) {
         .chart-title {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #f8fafc;
+          color: var(--text-primary);
           margin: 0;
         }
         .chart-subtitle {
           font-size: 0.8125rem;
-          color: #94a3b8;
+          color: var(--text-secondary);
           margin: 0;
         }
         .chart-container {
@@ -126,11 +126,11 @@ export default function FollowersChart({ data = defaultData }) {
           >
             <defs>
               <linearGradient id="followerColor" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
             <XAxis 
               dataKey="month" 
               stroke="#64748b" 
@@ -153,7 +153,7 @@ export default function FollowersChart({ data = defaultData }) {
               type="monotone"
               name="Followers"
               dataKey="count"
-              stroke="#3b82f6"
+              stroke="var(--accent-primary)"
               strokeWidth={3}
               fillOpacity={1}
               fill="url(#followerColor)"

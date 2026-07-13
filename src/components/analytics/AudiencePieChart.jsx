@@ -2,11 +2,11 @@ import React from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { audienceDemographics as defaultData } from '../../data/dummyAnalytics';
 
-// Colors matched with modern designer palette
+// Colors mapped dynamically with CSS variables
 const COLORS = {
-  'Female': '#ec4899',       // pink-500
-  'Male': '#3b82f6',         // blue-500
-  'Non-binary / Other': '#10b981', // emerald-500
+  'Female': 'var(--accent-secondary)',       
+  'Male': 'var(--accent-primary)',         
+  'Non-binary / Other': '#10b981', 
   'Other': '#10b981'
 };
 
@@ -24,8 +24,8 @@ const CustomTooltip = ({ active, payload }) => {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: 6px;
             font-family: 'Inter', sans-serif;
@@ -40,10 +40,10 @@ const CustomTooltip = ({ active, payload }) => {
             border-radius: 50%;
           }
           .tooltip-label {
-            color: #94a3b8;
+            color: var(--text-secondary);
           }
           .tooltip-value {
-            color: #f8fafc;
+            color: var(--text-primary);
             font-weight: 700;
           }
         `}</style>
@@ -90,7 +90,7 @@ const RenderLegend = ({ payload }) => {
           font-family: 'Inter', sans-serif;
           font-size: 13px;
           font-weight: 500;
-          color: #cbd5e1;
+          color: var(--text-secondary);
         }
         .legend-label-wrapper {
           display: flex;
@@ -103,11 +103,11 @@ const RenderLegend = ({ payload }) => {
           border-radius: 50%;
         }
         .legend-text {
-          color: #94a3b8;
+          color: var(--text-secondary);
         }
         .legend-percentage {
           font-weight: 700;
-          color: #f8fafc;
+          color: var(--text-primary);
         }
         @media (max-width: 640px) {
           .legend-grid {
@@ -135,10 +135,10 @@ export default function AudiencePieChart({ data = defaultData.gender }) {
     <div className="chart-card">
       <style>{`
         .chart-card {
-          background: rgba(30, 41, 59, 0.7);
+          background: var(--bg-secondary);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 1.5rem;
           width: 100%;
@@ -155,12 +155,12 @@ export default function AudiencePieChart({ data = defaultData.gender }) {
         .chart-title {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #f8fafc;
+          color: var(--text-primary);
           margin: 0;
         }
         .chart-subtitle {
           font-size: 0.8125rem;
-          color: #94a3b8;
+          color: var(--text-secondary);
           margin: 0;
         }
         .pie-flex-layout {

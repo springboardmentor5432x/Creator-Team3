@@ -30,8 +30,8 @@ export default function KPICards({ data = defaultKpiData }) {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-      color: '#3b82f6', // blue
-      bgLight: 'rgba(59, 130, 246, 0.1)'
+      color: 'var(--accent-primary)',
+      bgLight: 'var(--accent-glow)'
     },
     {
       key: 'views',
@@ -45,8 +45,8 @@ export default function KPICards({ data = defaultKpiData }) {
           <circle cx="12" cy="12" r="3" />
         </svg>
       ),
-      color: '#8b5cf6', // purple
-      bgLight: 'rgba(139, 92, 246, 0.1)'
+      color: 'var(--accent-secondary)',
+      bgLight: 'rgba(236, 72, 153, 0.1)'
     },
     {
       key: 'likes',
@@ -59,8 +59,8 @@ export default function KPICards({ data = defaultKpiData }) {
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
       ),
-      color: '#ec4899', // pink
-      bgLight: 'rgba(236, 72, 153, 0.1)'
+      color: 'var(--accent-primary)',
+      bgLight: 'var(--accent-glow)'
     },
     {
       key: 'comments',
@@ -73,7 +73,7 @@ export default function KPICards({ data = defaultKpiData }) {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       ),
-      color: '#06b6d4', // cyan
+      color: 'var(--accent-secondary)',
       bgLight: 'rgba(6, 182, 212, 0.1)'
     },
     {
@@ -90,8 +90,8 @@ export default function KPICards({ data = defaultKpiData }) {
           <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
       ),
-      color: '#f59e0b', // amber
-      bgLight: 'rgba(245, 158, 11, 0.1)'
+      color: 'var(--accent-primary)',
+      bgLight: 'var(--accent-glow)'
     }
   ];
 
@@ -108,10 +108,10 @@ export default function KPICards({ data = defaultKpiData }) {
           font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
         .kpi-card {
-          background: rgba(30, 41, 59, 0.7);
+          background: var(--bg-secondary);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 1.5rem;
           display: flex;
@@ -135,7 +135,7 @@ export default function KPICards({ data = defaultKpiData }) {
         .kpi-label {
           font-size: 0.875rem;
           font-weight: 500;
-          color: #94a3b8;
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -167,7 +167,7 @@ export default function KPICards({ data = defaultKpiData }) {
         .kpi-value {
           font-size: 1.875rem;
           font-weight: 700;
-          color: #f8fafc;
+          color: var(--text-primary);
           letter-spacing: -0.02em;
         }
         .kpi-trend {
@@ -181,12 +181,12 @@ export default function KPICards({ data = defaultKpiData }) {
           width: fit-content;
         }
         .kpi-trend.positive {
-          background: rgba(16, 185, 129, 0.12);
-          color: #34d399;
+          background: var(--trend-pos-bg);
+          color: var(--trend-pos);
         }
         .kpi-trend.negative {
-          background: rgba(239, 68, 68, 0.12);
-          color: #f87171;
+          background: var(--trend-neg-bg);
+          color: var(--trend-neg);
         }
         .kpi-trend svg {
           width: 12px;

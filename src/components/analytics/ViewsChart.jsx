@@ -27,8 +27,8 @@ const CustomTooltip = ({ active, payload, label }) => {
         ))}
         <style>{`
           .custom-tooltip {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             padding: 12px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -68,10 +68,10 @@ export default function ViewsChart({ data = defaultData }) {
     <div className="chart-card">
       <style>{`
         .chart-card {
-          background: rgba(30, 41, 59, 0.7);
+          background: var(--bg-secondary);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           padding: 1.5rem;
           width: 100%;
@@ -93,12 +93,12 @@ export default function ViewsChart({ data = defaultData }) {
         .chart-title {
           font-size: 1.125rem;
           font-weight: 600;
-          color: #f8fafc;
+          color: var(--text-primary);
           margin: 0;
         }
         .chart-subtitle {
           font-size: 0.8125rem;
-          color: #94a3b8;
+          color: var(--text-secondary);
           margin: 0;
         }
         .chart-container {
@@ -120,10 +120,10 @@ export default function ViewsChart({ data = defaultData }) {
       <div className="chart-container">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={data}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+             data={data}
+             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
             <XAxis 
               dataKey="month" 
               stroke="#64748b" 
@@ -146,25 +146,25 @@ export default function ViewsChart({ data = defaultData }) {
               height={36} 
               iconType="circle" 
               iconSize={8}
-              wrapperStyle={{ fontSize: '12px', color: '#94a3b8' }}
+              wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }}
             />
             <Line
               type="monotone"
               name="Views"
               dataKey="views"
-              stroke="#8b5cf6"
+              stroke="var(--accent-primary)"
               strokeWidth={3}
-              dot={{ stroke: '#8b5cf6', strokeWidth: 1, r: 3, fill: '#1e293b' }}
-              activeDot={{ r: 6, strokeWidth: 0, fill: '#8b5cf6' }}
+              dot={{ stroke: 'var(--accent-primary)', strokeWidth: 1, r: 3, fill: '#1e293b' }}
+              activeDot={{ r: 6, strokeWidth: 0, fill: 'var(--accent-primary)' }}
             />
             <Line
               type="monotone"
               name="Likes"
               dataKey="likes"
-              stroke="#ec4899"
+              stroke="var(--accent-secondary)"
               strokeWidth={2}
-              dot={{ stroke: '#ec4899', strokeWidth: 1, r: 2, fill: '#1e293b' }}
-              activeDot={{ r: 4, strokeWidth: 0, fill: '#ec4899' }}
+              dot={{ stroke: 'var(--accent-secondary)', strokeWidth: 1, r: 2, fill: '#1e293b' }}
+              activeDot={{ r: 4, strokeWidth: 0, fill: 'var(--accent-secondary)' }}
             />
           </LineChart>
         </ResponsiveContainer>

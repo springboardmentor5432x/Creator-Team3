@@ -6,6 +6,7 @@ import AudiencePieChart from './AudiencePieChart';
 import EngagementBarChart from './EngagementBarChart';
 import SettingsView from './SettingsView';
 import NotificationsPanel from './NotificationsPanel';
+import AdminPanel from './AdminPanel';
 
 import { kpiData as dummyKpiData, platformPerformance as dummyPerformance } from '../../data/dummyAnalytics';
 
@@ -14,6 +15,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [userRole, setUserRole] = useState('Creator');
   
   const [kpiData, setKpiData] = useState(dummyKpiData);
   const [platformPerformance, setPlatformPerformance] = useState(dummyPerformance);
@@ -65,6 +67,13 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
         if (resNotifs.ok) {
           const notifs = await resNotifs.json();
           setNotifications(notifs);
+        }
+
+        // Fetch user details for role validation
+        const resUser = await fetch(`${baseUrl}/api/user/details`, { headers });
+        if (resUser.ok) {
+          const userData = await resUser.json();
+          setUserRole(userData.account.role);
         }
 
       } catch (err) {
@@ -170,6 +179,21 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
   };
 
   const activeKpiData = getFilteredKpiData();
+
+  const getHeaderInfo = () => {
+    switch (userRole) {
+      case 'Admin':
+        return { title: 'Admin Control Center', subtitle: 'Manage platform users and view telemetry metrics' };
+      case 'Agency':
+        return { title: 'Agency Portfolio Hub', subtitle: 'Oversee creator performance and client engagements' };
+      case 'Brand':
+        return { title: 'Brand Sponsor Hub', subtitle: 'Analyze campaign briefs and influencer engagement stats' };
+      case 'Creator':
+      default:
+        return { title: 'Creator Analytics', subtitle: 'Milestone 1 Performance Dashboard' };
+    }
+  };
+  const headerInfo = getHeaderInfo();
 
   return (
     <div className="dashboard-container" data-theme={currentTheme}>
@@ -516,8 +540,8 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
       {/* Header Section */}
       <header className="dashboard-header">
         <div className="dashboard-title-group">
-          <h1 className="dashboard-title">Creator Analytics</h1>
-          <p className="dashboard-subtitle">Milestone 1 Performance Dashboard</p>
+          <h1 className="dashboard-title">{headerInfo.title}</h1>
+          <p className="dashboard-subtitle">{headerInfo.subtitle}</p>
         </div>
 
         {/* Header Actions */}
@@ -538,6 +562,15 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
             >
               Settings
             </button>
+            {userRole === 'Admin' && (
+              <button 
+                type="button" 
+                className={`nav-tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                onClick={() => setActiveTab('admin')}
+              >
+                Admin Panel
+              </button>
+            )}
           </div>
 
           <div className="notif-bell-container">
@@ -576,8 +609,47 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
           currentTheme={currentTheme} 
           onAuthUpdate={onAuthUpdate}
         />
+      ) : activeTab === 'admin' ? (
+        <AdminPanel token={token} />
       ) : (
         <>
+          {/* Dynamic welcome message for Agencies and Brands */}
+          {(userRole === 'Agency' || userRole === 'Brand') && (
+            <div style={{
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              padding: '1.25rem 1.5rem',
+              borderRadius: '16px',
+              marginBottom: '1.5rem',
+              backdropFilter: 'blur(12px)',
+              display: 'flex',
+              alignItems: 'center',
+              justify-content: 'space-between'
+            }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
+                  Welcome back, {userRole === 'Agency' ? 'Agency Manager' : 'Sponsor Brand Partner'}!
+                </h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  {userRole === 'Agency' 
+                    ? 'Overseeing multi-platform creator listings and engagement rate stats.' 
+                    : 'Reviewing active campaigns and audience reach metrics.'}
+                </p>
+              </div>
+              <span style={{
+                background: 'var(--accent-glow)',
+                border: '1px solid var(--accent-primary)',
+                color: 'var(--accent-primary)',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '0.75rem',
+                fontWeight: '700'
+              }}>
+                PREMIUM PORTAL ACTIVE
+              </span>
+            </div>
+          )}
+
           {/* Dashboard Filters Row */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem', position: 'relative', zIndex: 10 }}>
             <div className="filter-group">

@@ -442,3 +442,50 @@ def clear_notifications(credentials: HTTPAuthorizationCredentials = Depends(secu
         return {"message": "All notifications cleared"}
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid Token")
+
+@app.get("/api/admin/users")
+def get_admin_users(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        role = payload.get("role")
+        if role != "Admin":
+            raise HTTPException(status_code=403, detail="Forbidden: Admin access required")
+        
+        users = db.query(User).all()
+        result = []
+        for u in users:
+            result.append({
+                "id": u.id,
+                "Username": u.Username,
+                "Email": u.Email,
+                "phone": u.phone,
+                "role": u.role
+            })
+        return result
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+
+@app.delete("/api/admin/users/{id}")
+def delete_user(id: int, credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        role = payload.get("role")
+        if role != "Admin":
+            raise HTTPException(status_code=403, detail="Forbidden: Admin access required")
+        
+        email = payload.get("Email")
+        current_user = db.query(User).filter(User.Email == email).first()
+        if current_user and current_user.id == id:
+            raise HTTPException(status_code=400, detail="Cannot delete your own admin account")
+        
+        target_user = db.query(User).filter(User.id == id).first()
+        if not target_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        db.delete(target_user)
+        db.commit()
+        return {"message": "User deleted successfully"}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")

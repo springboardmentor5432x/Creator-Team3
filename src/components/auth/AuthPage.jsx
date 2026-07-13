@@ -412,6 +412,7 @@ export default function AuthPage({ onAuthSuccess }) {
                 <option value="Creator">Creator</option>
                 <option value="Agency">Agency</option>
                 <option value="Brand">Brand</option>
+                <option value="Admin">Admin</option>
               </select>
             </div>
           )}

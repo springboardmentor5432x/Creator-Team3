@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 import bcrypt
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
@@ -27,10 +27,10 @@ security = HTTPBearer()
 
 
 class UserRegister(BaseModel):
-    Username: str
-    Email: str
-    phone: str
-    Password: str
+    Username: str = Field(..., min_length=3, max_length=30)
+    Email: EmailStr
+    phone: str = Field(..., min_length=10, max_length=10)
+    Password: str = Field(..., min_length=8)
     role: str
 class UserLogin(BaseModel):
     Email: str
@@ -77,6 +77,13 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
             status_code=400,
             detail="Email already registered"
         )
+    existing_phone = db.query(User).filter(User.phone == user.phone).first()
+
+    if existing_phone:
+        raise HTTPException(
+        status_code=400,
+        detail="Phone number already registered"
+    )
 
     hashed_password = bcrypt.hashpw(user.Password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 

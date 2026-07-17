@@ -13,12 +13,18 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
   const [activeSubTab, setActiveSubTab] = useState('account');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [accountMessage, setAccountMessage] = useState({ type: "", text: "" });
+  const [profileMessage, setProfileMessage] = useState({ type: "", text: "" });
+  const [passwordMessage, setPasswordMessage] = useState({ type: "", text: "" });
 
   // Account form state
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   // Profile form state
   const [bio, setBio] = useState('');
@@ -27,6 +33,25 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
   const [platform, setPlatform] = useState('YouTube');
 
   // Fetch current user details on mount
+  const validatePassword = (value) => {
+  if (value === '') {
+    setPasswordError('');
+    return true;
+  }
+
+  const regex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+
+  if (!regex.test(value)) {
+    setPasswordError(
+      'Password must be at least 8 characters and include uppercase, lowercase, number and special character.'
+    );
+    return false;
+  }
+
+  setPasswordError('');
+  return true;
+};
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -65,7 +90,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
   const handleSaveAccount = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ type: '', text: '' });
+    setAccountMessage({ type: '', text: '' });
 
     try {
       const res = await fetch('http://127.0.0.1:8000/api/user/account', {
@@ -75,11 +100,10 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          Username: username,
-          Email: email,
-          phone: phone,
-          Password: password || null
-        })
+    Username: username,
+    Email: email,
+    phone: phone
+})
       });
 
       const data = await res.json();
@@ -88,10 +112,23 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
       if (data.access_token) {
         onAuthUpdate(data.access_token);
       }
-      setMessage({ type: 'success', text: 'Account settings updated successfully!' });
-      setPassword(''); // clear password field
+      setAccountMessage({
+    type: "success",
+    text: "Account settings updated successfully!"
+     });
+
+setTimeout(() => {
+    setAccountMessage({ type: "", text: "" });
+}, 3000);
     } catch (err) {
-      setMessage({ type: 'error', text: err.message });
+      setAccountMessage({
+    type: "error",
+    text: err.message
+});
+
+setTimeout(() => {
+    setAccountMessage({ type: "", text: "" });
+}, 3000);
     } finally {
       setLoading(false);
     }
@@ -100,7 +137,7 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage({ type: '', text: '' });
+    setProfileMessage({ type: '', text: '' });
 
     try {
       const res = await fetch('http://127.0.0.1:8000/api/user/profile', {
@@ -120,13 +157,85 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed to update profile');
 
-      setMessage({ type: 'success', text: 'Profile settings updated successfully!' });
+      setProfileMessage({
+    type: "success",
+    text: "Profile settings updated successfully!"
+});
+
+setTimeout(() => {
+    setProfileMessage({ type: "", text: "" });
+}, 3000);
     } catch (err) {
-      setMessage({ type: 'error', text: err.message });
+      setProfileMessage({
+    type: "error",
+    text: err.message
+});
+
+setTimeout(() => {
+    setProfileMessage({ type: "", text: "" });
+}, 3000);
     } finally {
       setLoading(false);
     }
   };
+const handleChangePassword = async (e) => {
+    e.preventDefault();
+if (newPassword !== confirmPassword) {
+        setMessage({
+            type: "error",
+            text: "New Password and Confirm Password do not match."
+        });
+        return;
+    }
+
+    try {
+        setLoading(true);
+
+        const res = await fetch("http://127.0.0.1:8000/change-password", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                old_password: currentPassword,
+                new_password: newPassword
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.detail || "Password change failed");
+        }
+
+        setPasswordMessage({
+    type: "success",
+    text: "Password changed successfully!"
+});
+
+setTimeout(() => {
+    setPasswordMessage({ type: "", text: "" });
+}, 3000);
+
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setPasswordError("");
+
+    } catch (err) {
+        setPasswordMessage({
+    type: "error",
+    text: err.message
+});
+
+setTimeout(() => {
+    setPasswordMessage({ type: "", text: "" });
+}, 3000);
+    } finally {
+        setLoading(false);
+    }
+};
 
   return (
     <div className="settings-view">
@@ -410,6 +519,12 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         >
           Creator Profile
         </button>
+        <button
+          className={`settings-nav-btn ${activeSubTab === 'password' ? 'active' : ''}`}
+          onClick={() => setActiveSubTab('password')}
+        >
+        Change Password
+        </button>
         <button 
           className={`settings-nav-btn ${activeSubTab === 'themes' ? 'active' : ''}`}
           onClick={() => setActiveSubTab('themes')}
@@ -420,18 +535,18 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
 
       {/* Settings Form Pane */}
       <div className="settings-content">
-        {/* Banner Msg */}
-        {message.text && (
-          <div className={`settings-banner ${message.type}`}>
-            {message.text}
-          </div>
-        )}
-
         {/* 1. Account Settings */}
         {activeSubTab === 'account' && (
           <div>
             <h2 className="settings-title">Account Settings</h2>
-            <p className="settings-subtitle">Manage your personal credentials and phone security.</p>
+            <p className="settings-subtitle">
+              Manage your personal credentials and phone security.
+              </p>
+            {accountMessage.text && (
+    <div className={`settings-banner ${accountMessage.type}`}>
+        {accountMessage.text}
+    </div>
+)}
             <form className="settings-form" onSubmit={handleSaveAccount}>
               <div className="settings-form-row">
                 <div className="settings-group">
@@ -445,7 +560,9 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   />
                 </div>
                 <div className="settings-group">
-                  <label className="settings-label">Phone Number</label>
+                  <label className="settings-label">
+                  Phone Number
+                  </label>
                   <input 
                     type="text" 
                     className="settings-input"
@@ -465,17 +582,11 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   required
                 />
               </div>
-              <div className="settings-group">
-                <label className="settings-label">New Password (leave empty to keep current)</label>
-                <input 
-                  type="password" 
-                  className="settings-input"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <button type="submit" className="save-btn" disabled={loading}>
+              <button 
+              type="submit" 
+              className="save-btn" 
+              disabled={loading || !!passwordError}
+              >
                 {loading ? 'Saving...' : 'Save Account Settings'}
               </button>
             </form>
@@ -486,7 +597,14 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
         {activeSubTab === 'profile' && (
           <div>
             <h2 className="settings-title">Creator Profile</h2>
-            <p className="settings-subtitle">Set up platform preferences and bio for public representation.</p>
+            <p className="settings-subtitle">
+              Set up platform preferences and bio for public representation.
+            </p>
+            {profileMessage.text && (
+    <div className={`settings-banner ${profileMessage.type}`}>
+        {profileMessage.text}
+    </div>
+)}
             <form className="settings-form" onSubmit={handleSaveProfile}>
               <div className="settings-group">
                 <label className="settings-label">Primary Platform</label>
@@ -545,6 +663,86 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
             </form>
           </div>
         )}
+
+        {/* 4. Change Password */}
+{activeSubTab === 'password' && (
+  <div>
+    <h2 className="settings-title">Change Password</h2>
+
+    <p className="settings-subtitle">
+      Update your account password securely.
+    </p>
+{passwordMessage.text && (
+    <div className={`settings-banner ${passwordMessage.type}`}>
+        {passwordMessage.text}
+    </div>
+)}
+    <form className="settings-form" onSubmit={handleChangePassword}>
+
+      <div className="settings-group">
+        <label className="settings-label">
+          Current Password
+        </label>
+
+        <input
+          type="password"
+          className="settings-input"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+      </div>
+
+      <div className="settings-group">
+        <label className="settings-label">
+          New Password
+        </label>
+
+        <input
+          type="password"
+          className="settings-input"
+          value={newPassword}
+          onChange={(e) => {
+            setNewPassword(e.target.value);
+            validatePassword(e.target.value);
+          }}
+        />
+
+        {passwordError && (
+          <p
+            style={{
+              color: "red",
+              fontSize: "12px",
+              marginTop: "5px"
+            }}
+          >
+            {passwordError}
+          </p>
+        )}
+      </div>
+
+      <div className="settings-group">
+        <label className="settings-label">
+          Confirm Password
+        </label>
+
+        <input
+          type="password"
+          className="settings-input"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="save-btn"
+      >
+        Change Password
+      </button>
+
+    </form>
+  </div>
+)}
 
         {/* 3. Theme Settings */}
         {activeSubTab === 'themes' && (

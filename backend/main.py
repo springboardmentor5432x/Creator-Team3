@@ -3,6 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, Field
 import bcrypt
+import re
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from database import engine, Base, get_db
@@ -18,12 +19,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 Base.metadata.create_all(bind=engine)
 # Using direct bcrypt for hashing and verification
 SECRET_KEY = "creatoriq_secret_key"
 ALGORITHM = "HS256"
 security = HTTPBearer()
+def validate_password(password):
+    if len(password) < 8:
+        return False
+
+    if not re.search(r"[A-Z]", password):
+        return False
+
+    if not re.search(r"[a-z]", password):
+        return False
+
+    if not re.search(r"[0-9]", password):
+        return False
+
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False
+
+    return True
 
 
 class UserRegister(BaseModel):
@@ -35,6 +52,13 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     Email: str
     Password: str
+class ForgotPassword(BaseModel):
+    Email: EmailStr
+    new_password: str
+
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str
 
 class AccountUpdate(BaseModel):
     Username: str
@@ -83,6 +107,11 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
         raise HTTPException(
         status_code=400,
         detail="Phone number already registered"
+    )
+    if not validate_password(user.Password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must contain uppercase, lowercase, number and special character."
     )
 
     hashed_password = bcrypt.hashpw(user.Password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -159,7 +188,97 @@ def get_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
             status_code=401,
             detail="Invalid Token"
         )
+@app.put("/change-password")
+def change_password(
+    data: ChangePassword,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    token = credentials.credentials
 
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        email = payload.get("Email")
+
+        user = db.query(User).filter(User.Email == email).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+
+        if not bcrypt.checkpw(
+            data.old_password.encode('utf-8'),
+            user.Password.encode('utf-8')
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Old password is incorrect"
+            )
+        if not validate_password(data.new_password):
+            raise HTTPException(
+                status_code=400,
+                detail="Password must contain uppercase, lowercase, number and special character."
+            )
+            
+
+        hashed_password = bcrypt.hashpw(
+            data.new_password.encode("utf-8"),
+            bcrypt.gensalt()
+        ).decode("utf-8")
+
+        user.Password = hashed_password
+
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "message": "Password changed successfully"
+        }
+
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid Token"
+        )
+@app.put("/forgot-password")
+def forgot_password(
+    data: ForgotPassword,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.Email == data.Email).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="Email not found"
+        )
+
+    if not validate_password(data.new_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must contain uppercase, lowercase, number and special character."
+        )
+
+    hashed_password = bcrypt.hashpw(
+        data.new_password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
+
+    user.Password = hashed_password
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "message": "Password reset successfully"
+    }
 # API routes for Analytics Dashboard
 @app.get("/api/analytics")
 def get_analytics(credentials: HTTPAuthorizationCredentials = Depends(security)):
@@ -248,11 +367,10 @@ def get_user_details(credentials: HTTPAuthorizationCredentials = Depends(securit
     token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("Email")
+        email = payload.get("Email")     
         user = db.query(User).filter(User.Email == email).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
         profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == user.id).first()
         if not profile:
             profile = CreatorProfile(

@@ -281,7 +281,10 @@ def forgot_password(
     }
 # API routes for Analytics Dashboard
 @app.get("/api/analytics")
-def get_analytics(credentials: HTTPAuthorizationCredentials = Depends(security)):
+def get_analytics(
+    platform: str = "All",
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
     token = credentials.credentials
     try:
         jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -614,3 +617,102 @@ def delete_user(id: int, credentials: HTTPAuthorizationCredentials = Depends(sec
         return {"message": "User deleted successfully"}
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid Token")
+@app.get("/api/analytics/trending")
+def get_trending(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+
+    try:
+        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return [
+            {
+                "title": "Summer Reel",
+                "platform": "Instagram",
+                "views": "2.4M"
+            },
+            {
+                "title": "Tech Review",
+                "platform": "YouTube",
+                "views": "1.8M"
+            },
+            {
+                "title": "Travel Vlog",
+                "platform": "TikTok",
+                "views": "1.5M"
+            }
+        ]
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+@app.get("/api/analytics/top-content")
+def get_top_content(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+    token = credentials.credentials
+
+    try:
+
+        jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return [
+            {
+                "title": "Summer Reel",
+                "platform": "Instagram",
+                "views": "2.4M",
+                "engagement": "9.4%"
+            },
+            {
+                "title": "Tech Review",
+                "platform": "YouTube",
+                "views": "1.8M",
+                "engagement": "8.2%"
+            },
+            {
+                "title": "Product Launch",
+                "platform": "LinkedIn",
+                "views": "1.3M",
+                "engagement": "7.8%"
+            }
+        ]
+
+    except JWTError:
+
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid Token"
+        )
+@app.get("/api/analytics/compare")
+def get_compare_content(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+    try:
+        jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return {
+            "left": {
+                "title": "Summer Reel",
+                "views": "2.4M",
+                "engagement": "9.4%"
+            },
+            "right": {
+                "title": "Tech Review",
+                "views": "1.8M",
+                "engagement": "8.2%"
+            }
+        }
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+@app.get("/api/analytics/insights")
+def get_ai_insights(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+    try:
+        jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+
+        return [
+            "📈 Instagram engagement increased by 12% this week.",
+            "🎥 Reels are generating 35% more views than image posts.",
+            "🕒 Your best posting time is between 6 PM and 8 PM.",
+            "⭐ Audience retention improved by 9% compared to last month."
+        ]
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")

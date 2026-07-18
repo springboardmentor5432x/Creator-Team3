@@ -7,6 +7,14 @@ import EngagementBarChart from './EngagementBarChart';
 import SettingsView from './SettingsView';
 import NotificationsPanel from './NotificationsPanel';
 import AdminPanel from './AdminPanel';
+import Sidebar from "./Sidebar";
+import "./analytics.css";
+import Header from "./Header";
+import FilterBar from "./FilterBar";
+import TrendingContent from "./TrendingContent";
+import TopContentTable from "./TopContentTable";
+import CompareContent from "./CompareContent";
+import AIInsights from "./AIInsights";
 
 import { kpiData as dummyKpiData, platformPerformance as dummyPerformance } from '../../data/dummyAnalytics';
 
@@ -35,7 +43,10 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
       try {
         setLoading(true);
         // Fetch KPIs & performance
-        const resStats = await fetch(`${baseUrl}/api/analytics`, { headers });
+        const resStats = await fetch(
+    `${baseUrl}/api/analytics?platform=${selectedPlatform}`,
+    { headers }
+);
         if (!resStats.ok) throw new Error('Failed to load KPIs');
         const stats = await resStats.json();
         setKpiData(stats.kpiData);
@@ -87,7 +98,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
     if (token) {
       fetchData();
     }
-  }, [token]);
+  }, [token, selectedPlatform]);
 
   const handleMarkAsRead = async (id) => {
     try {
@@ -196,7 +207,18 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
   const headerInfo = getHeaderInfo();
 
   return (
-    <div className="dashboard-container" data-theme={currentTheme}>
+    <div className="dashboard-layout">
+
+        <Sidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onLogout={onLogout}
+        />
+
+        <div
+            className="dashboard-container"
+            data-theme={currentTheme}
+        >
       {/* Dynamic Theme Color Tokens and Dashboard styles */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -538,64 +560,17 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
       <div className="ambient-glow"></div>
 
       {/* Header Section */}
-      <header className="dashboard-header">
-        <div className="dashboard-title-group">
-          <h1 className="dashboard-title">{headerInfo.title}</h1>
-          <p className="dashboard-subtitle">{headerInfo.subtitle}</p>
-        </div>
-
-        {/* Header Actions */}
-        <div className="header-actions">
-          {/* Navigation Tabs */}
-          <div className="nav-tabs">
-            <button 
-              type="button" 
-              className={`nav-tab-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              Dashboard
-            </button>
-            <button 
-              type="button" 
-              className={`nav-tab-btn ${activeTab === 'settings' ? 'active' : ''}`}
-              onClick={() => setActiveTab('settings')}
-            >
-              Settings
-            </button>
-            {userRole === 'Admin' && (
-              <button 
-                type="button" 
-                className={`nav-tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
-                onClick={() => setActiveTab('admin')}
-              >
-                Admin Panel
-              </button>
-            )}
-          </div>
-
-          <div className="notif-bell-container">
-            <button 
-              type="button" 
-              className={`notif-bell-btn ${showNotifPanel ? 'active' : ''}`}
-              onClick={() => setShowNotifPanel(!showNotifPanel)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="bell-icon">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-              </svg>
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span className="bell-badge">
-                  {notifications.filter(n => !n.read).length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <button type="button" className="logout-btn" onClick={onLogout}>
-            Logout
-          </button>
-        </div>
-      </header>
+      <Header
+    title={headerInfo.title}
+    subtitle={headerInfo.subtitle}
+    notifications={notifications}
+    showNotifPanel={showNotifPanel}
+    setShowNotifPanel={setShowNotifPanel}
+    onLogout={onLogout}
+    activeTab={activeTab}
+    setActiveTab={setActiveTab}
+    userRole={userRole}
+/>
 
       {/* Error alert banner */}
       {error && <div className="dashboard-message">{error}</div>}
@@ -651,36 +626,50 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
           )}
 
           {/* Dashboard Filters Row */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem', position: 'relative', zIndex: 10 }}>
-            <div className="filter-group">
-              {['All', 'YouTube', 'Instagram', 'LinkedIn', 'Twitch'].map((platform) => (
-                <button
-                  key={platform}
-                  className={`filter-btn ${selectedPlatform === platform ? 'active' : ''}`}
-                  onClick={() => setSelectedPlatform(platform)}
-                >
-                  {platform}
-                </button>
-              ))}
-            </div>
-          </div>
+          <FilterBar
+    selectedPlatform={selectedPlatform}
+    setSelectedPlatform={setSelectedPlatform}
+/>
 
           {/* Top Section: KPI Cards */}
           <section className="dashboard-section">
-            <KPICards data={activeKpiData} />
-          </section>
+    <KPICards data={activeKpiData} />
+</section>
+<section className="dashboard-section">
+    <ViewsChart
+        data={viewsData.length ? viewsData : undefined}
+    />
+</section>
+<section className="dashboard-row">
+    <FollowersChart
+        data={followersData.length ? followersData : undefined}
+    />
 
-          {/* Middle Section: Views Chart & Followers Chart */}
-          <section className="dashboard-row">
-            <ViewsChart data={viewsData.length ? viewsData : undefined} />
-            <FollowersChart data={followersData.length ? followersData : undefined} />
-          </section>
+    <AudiencePieChart
+        data={audienceData.length ? audienceData : undefined}
+    />
+</section>
+<section className="dashboard-section">
+    <EngagementBarChart
+        data={platformPerformance}
+    />
+</section>
+<section className="dashboard-section">
+    <TrendingContent />
+</section>
 
-          {/* Bottom Section: Audience Pie Chart & Engagement Bar Chart */}
-          <section className="dashboard-row">
-            <AudiencePieChart data={audienceData.length ? audienceData : undefined} />
-            <EngagementBarChart data={platformPerformance} />
-          </section>
+<section className="dashboard-section">
+    <TopContentTable />
+</section>
+
+<section className="dashboard-section">
+    <CompareContent />
+</section>
+
+<section className="dashboard-section">
+    <AIInsights />
+</section>
+
         </>
       )}
       {showNotifPanel && (
@@ -692,6 +681,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate, curr
           onClose={() => setShowNotifPanel(false)}
         />
       )}
+    </div>
     </div>
   );
 }

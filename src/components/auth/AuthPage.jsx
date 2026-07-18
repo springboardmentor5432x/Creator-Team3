@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-
+import ForgotPassword from "./ForgotPassword";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 export default function AuthPage({ onAuthSuccess }) {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('Creator');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -316,14 +319,19 @@ export default function AuthPage({ onAuthSuccess }) {
       {/* Decorative Glows */}
       <div className="auth-glow-1"></div>
       <div className="auth-glow-2"></div>
-
+        {showForgotPassword ? (
+  <ForgotPassword
+    onBack={() => setShowForgotPassword(false)}
+  />
+) : (
       <div className="auth-card">
-        <div className="auth-header">
+<div className="auth-header">
           <h2 className="auth-logo">CreatorIQ Portal</h2>
           <p className="auth-subtitle">
             {isLogin ? 'Sign in to access your analytics' : 'Create an account to get started'}
           </p>
         </div>
+
 
         {/* Tab Selector */}
         <div className="auth-tabs">
@@ -391,15 +399,49 @@ export default function AuthPage({ onAuthSuccess }) {
 
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input 
-              type="password" 
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div style={{ position: "relative" }}>
+  <input
+    type={showPassword ? "text" : "password"}
+    className="form-input"
+    placeholder="••••••••"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+  />
+
+  <span
+    onClick={() => setShowPassword(!showPassword)}
+    style={{
+      position: "absolute",
+      right: "15px",
+      top: "50%",
+      transform: "translateY(-50%)",
+      cursor: "pointer",
+      color: "#888"
+    }}
+  >
+    {showPassword ? <FaEyeSlash /> : <FaEye />}
+  </span>
+</div>
           </div>
+          {isLogin && (
+  <div style={{ textAlign: "right", marginTop: "-8px", marginBottom: "12px" }}>
+    <button
+      type="button"
+      onClick={() => setShowForgotPassword(true)}
+      style={{
+        background: "none",
+        border: "none",
+        color: "#4f9cff",
+        cursor: "pointer",
+        fontSize: "14px",
+        padding: 0
+      }}
+    >
+      Forgot Password?
+    </button>
+  </div>
+)}
 
           {!isLogin && (
             <div className="form-group">
@@ -422,6 +464,7 @@ export default function AuthPage({ onAuthSuccess }) {
           </button>
         </form>
       </div>
+      )}
     </div>
   );
 }

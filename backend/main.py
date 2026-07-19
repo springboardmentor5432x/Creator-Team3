@@ -6,10 +6,11 @@ import bcrypt
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from database import engine, Base, get_db
-from models import User, CreatorProfile, Notification
-from youtube import get_channel_stats
-app = FastAPI()
 
+from youtube import get_channel_stats
+from linkedin import router as linkedin_router
+app = FastAPI()
+app.include_router(linkedin_router)
 # Enable CORS for frontend local server
 app.add_middleware(
     CORSMiddleware,

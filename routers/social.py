@@ -57,6 +57,7 @@ def verify_token(
 class SocialAccountCreate(BaseModel):
 
     platform: str
+    account_name: str
     access_token: str
     refresh_token: str | None = None
 
@@ -119,16 +120,18 @@ def connect_social_account(
 
 
     account = SocialAccount(
-
+        
         user_id=current_user.id,
 
         platform=platform,
+
+        account_name=data.account_name,
 
         access_token=data.access_token,
 
         refresh_token=data.refresh_token
 
-    )
+)
 
 
     db.add(account)
@@ -194,12 +197,12 @@ def get_connected_platforms(
 
 
     return [
-
         {
             "id": account.id,
             "platform": account.platform,
+            "account_name": account.account_name,
             "connected": True
-        }
+}
 
         for account in accounts
 

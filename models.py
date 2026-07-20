@@ -518,24 +518,36 @@ class SocialAccount(Base):
 
     __tablename__ = "social_accounts"
 
-
-    id = Column(Integer, primary_key=True)
-
+    id = Column(
+        Integer,
+        primary_key=True
+    )
 
     user_id = Column(
         Integer,
-        ForeignKey("users.id")
+        ForeignKey("users.id"),
+        nullable=False
     )
 
+    platform = Column(
+        String,
+        nullable=False
+    )
 
-    platform = Column(String)
+    account_name = Column(
+        String,
+        nullable=True
+    )
 
-    account_name = Column(String)
+    access_token = Column(
+        String,
+        nullable=False
+    )
 
-    access_token = Column(String)
-
-    refresh_token = Column(String)
-
+    refresh_token = Column(
+        String,
+        nullable=True
+    )
 
     connected_at = Column(
         DateTime,

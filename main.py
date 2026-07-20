@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
+
+
 from database import engine, Base
 import models
 
@@ -82,6 +85,7 @@ app.include_router(prediction.router)
 app.include_router(hashtag.router)
 
 app.include_router(agency.router)
+
 
 
 

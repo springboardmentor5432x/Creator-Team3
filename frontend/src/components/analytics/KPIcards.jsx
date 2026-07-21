@@ -1,48 +1,78 @@
-export default function KPICards() {
+function formatNumber(value) {
+  if (value === null || value === undefined) {
+    return "0";
+  }
+
+  const number = Number(value);
+
+  if (number >= 1000000) {
+    return `${(number / 1000000).toFixed(2)}M`;
+  }
+
+  if (number >= 1000) {
+    return `${(number / 1000).toFixed(1)}K`;
+  }
+
+  return number.toLocaleString();
+}
+
+function formatPercentage(value) {
+  if (value === null || value === undefined) {
+    return "0%";
+  }
+
+  return `${Number(value).toFixed(2)}%`;
+}
+
+export default function KPICards({ data = {} }) {
   const cards = [
     {
       title: "Total Followers",
-      value: "1.25M",
+      value: formatNumber(data.followers?.value),
       icon: "👥",
-      change: "↑ 12.4%",
-      positive: true,
+      change: data.followers?.change ?? 0,
+      positive: data.followers?.status === "positive",
     },
     {
       title: "Total Views",
-      value: "8.43M",
+      value: formatNumber(data.views?.value),
       icon: "👁️",
-      change: "↑ 8.2%",
-      positive: true,
+      change: data.views?.change ?? 0,
+      positive: data.views?.status === "positive",
     },
     {
       title: "Total Likes",
-      value: "1.24M",
+      value: formatNumber(data.likes?.value),
       icon: "❤️",
-      change: "↑ 5.1%",
-      positive: true,
+      change: data.likes?.change ?? 0,
+      positive: data.likes?.status === "positive",
     },
     {
       title: "Total Comments",
-      value: "89.3K",
+      value: formatNumber(data.comments?.value),
       icon: "💬",
-      change: "↓ 2.4%",
-      positive: false,
+      change: data.comments?.change ?? 0,
+      positive: data.comments?.status === "positive",
     },
     {
       title: "Engagement Rate",
-      value: "4.85%",
+      value: formatPercentage(
+        data.engagementRate?.value
+      ),
       icon: "📊",
-      change: "↑ 0.6%",
-      positive: true,
+      change: data.engagementRate?.change ?? 0,
+      positive:
+        data.engagementRate?.status === "positive",
     },
   ];
 
   return (
     <section className="kpi-section">
-
       {cards.map((card, index) => (
-        <div className="kpi-card" key={index}>
-
+        <div
+          className="kpi-card"
+          key={index}
+        >
           <p className="kpi-title">
             {card.title}
           </p>
@@ -52,7 +82,6 @@ export default function KPICards() {
           </h2>
 
           <div className="kpi-bottom">
-
             <span className="kpi-icon">
               {card.icon}
             </span>
@@ -64,14 +93,12 @@ export default function KPICards() {
                   : "kpi-change negative"
               }
             >
-              {card.change}
+              {card.positive ? "↑" : "↓"}{" "}
+              {Number(card.change).toFixed(1)}%
             </span>
-
           </div>
-
         </div>
       ))}
-
     </section>
   );
 }

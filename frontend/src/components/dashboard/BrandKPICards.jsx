@@ -1,57 +1,59 @@
 import React from "react";
 
-export default function BrandKPICards() {
+function formatNumber(value) {
+  if (value === null || value === undefined) {
+    return "0";
+  }
 
+  const number = Number(value);
+
+  if (number >= 1000000) {
+    return `${(number / 1000000).toFixed(1)}M`;
+  }
+
+  if (number >= 1000) {
+    return `${(number / 1000).toFixed(1)}K`;
+  }
+
+  return number.toLocaleString();
+}
+
+export default function BrandKPICards({ data = {} }) {
   const cards = [
-
     {
       title: "Active Campaigns",
-      value: "12",
-      change: "+3 this month",
+      value: formatNumber(data.activeCampaigns),
+      change: data.activeCampaignsChange,
       icon: "📢",
-      positive: true,
     },
-
     {
       title: "Total Reach",
-      value: "24.8M",
-      change: "+18.4%",
+      value: formatNumber(data.totalReach),
+      change: data.totalReachChange,
       icon: "👁️",
-      positive: true,
     },
-
     {
       title: "Total Engagement",
-      value: "1.84M",
-      change: "+12.7%",
+      value: formatNumber(data.totalEngagement),
+      change: data.totalEngagementChange,
       icon: "❤️",
-      positive: true,
     },
-
     {
       title: "Campaign Spend",
-      value: "$84.2K",
-      change: "+8.2%",
+      value: `$${formatNumber(data.campaignSpend)}`,
+      change: data.campaignSpendChange,
       icon: "💰",
-      positive: true,
     },
-
   ];
 
-
   return (
-
     <div className="brand-kpi-grid">
-
       {cards.map((card) => (
-
         <div
           className="brand-kpi-card"
           key={card.title}
         >
-
           <div className="brand-kpi-top">
-
             <span className="brand-kpi-title">
               {card.title}
             </span>
@@ -59,24 +61,17 @@ export default function BrandKPICards() {
             <span className="brand-kpi-icon">
               {card.icon}
             </span>
-
           </div>
-
 
           <h2>
             {card.value}
           </h2>
 
-
           <p className="positive-change">
-            ↑ {card.change}
+            ↑ {card.change || "0%"}
           </p>
-
         </div>
-
       ))}
-
     </div>
-
   );
 }

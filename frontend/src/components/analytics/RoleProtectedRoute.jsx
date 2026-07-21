@@ -4,24 +4,20 @@ export default function RoleProtectedRoute({
   allowedRoles,
   children,
 }) {
-  const userRole = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
 
-  // No role found
-  if (!userRole) {
-    return <Navigate to="/login" replace />;
-  }
-
-  const currentRole = userRole
+  const role = (
+    localStorage.getItem("role") || ""
+  )
     .toLowerCase()
     .trim();
 
-  const allowed = allowedRoles.map((role) =>
-    role.toLowerCase().trim()
-  );
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-  // Role is not allowed
-  if (!allowed.includes(currentRole)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (!allowedRoles.includes(role)) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

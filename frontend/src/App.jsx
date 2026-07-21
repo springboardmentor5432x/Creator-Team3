@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -12,82 +12,20 @@ import Register from "./pages/Register";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import BrandDashboard from "./pages/BrandDashboard";
 
+import AudienceAnalytics from "./pages/AudienceAnalytics";
+import Notifications from "./pages/Notifications";
 
-// ===============================
-// PROTECTED ROUTE
-// ===============================
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
+import CreatorProfile from "./pages/CreatorProfile";
+import BrandProfile from "./pages/BrandProfile";
 
-  if (!token) {
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
+import CreatorSettings from "./pages/CreatorSettings";
+import BrandSettings from "./pages/BrandSettings";
 
-  return children;
-}
+import RoleProtectedRoute from "./components/analytics/RoleProtectedRoute";
 
 
-// ===============================
-// ROLE PROTECTED ROUTE
-// ===============================
-function RoleProtectedRoute({
-  allowedRoles,
-  children,
-}) {
-  const role = (
-    localStorage.getItem("role") || ""
-  )
-    .toLowerCase()
-    .trim();
-
-  const allowed = allowedRoles.some(
-    (allowedRole) =>
-      allowedRole.toLowerCase().trim() === role
-  );
-
-  if (!allowed) {
-    if (role === "creator") {
-      return (
-        <Navigate
-          to="/creator"
-          replace
-        />
-      );
-    }
-
-    if (
-      role === "brand" ||
-      role === "brand agency"
-    ) {
-      return (
-        <Navigate
-          to="/brand"
-          replace
-        />
-      );
-    }
-
-    return (
-      <Navigate
-        to="/login"
-        replace
-      />
-    );
-  }
-
-  return children;
-};
-
-
-// ===============================
-// APP
-// ===============================
 export default function App() {
+
   const [token, setToken] = useState(
     localStorage.getItem("token")
   );
@@ -97,32 +35,16 @@ export default function App() {
 
       <Routes>
 
-        {/* ROOT */}
+        {/* DEFAULT */}
         <Route
           path="/"
           element={
-            token ? (
-              <Navigate
-                to={
-                  (
-                    localStorage.getItem("role") || ""
-                  )
-                    .toLowerCase()
-                    .trim() === "creator"
-                    ? "/creator"
-                    : "/brand"
-                }
-                replace
-              />
-            ) : (
-              <Navigate
-                to="/login"
-                replace
-              />
-            )
+            <Navigate
+              to="/login"
+              replace
+            />
           }
         />
-
 
         {/* LOGIN */}
         <Route
@@ -134,7 +56,6 @@ export default function App() {
           }
         />
 
-
         {/* REGISTER */}
         <Route
           path="/register"
@@ -143,56 +64,127 @@ export default function App() {
           }
         />
 
+        {/* ================= CREATOR ================= */}
 
-        {/* CREATOR DASHBOARD */}
         <Route
           path="/creator"
           element={
-            <ProtectedRoute>
-
-              <RoleProtectedRoute
-                allowedRoles={[
-                  "Creator",
-                ]}
-              >
-
-                <CreatorDashboard />
-
-              </RoleProtectedRoute>
-
-            </ProtectedRoute>
+            <RoleProtectedRoute
+              allowedRoles={["creator"]}
+            >
+              <CreatorDashboard />
+            </RoleProtectedRoute>
           }
         />
 
+        <Route
+          path="/creator/audience"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["creator"]}
+            >
+              <AudienceAnalytics />
+            </RoleProtectedRoute>
+          }
+        />
 
-        {/* BRAND DASHBOARD */}
+        <Route
+          path="/creator/profile"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["creator"]}
+            >
+              <CreatorProfile />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/settings"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["creator"]}
+            >
+              <CreatorSettings />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/notifications"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={["creator"]}
+            >
+              <Notifications />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* ================= BRAND ================= */}
+
         <Route
           path="/brand"
           element={
-            <ProtectedRoute>
-
-              <RoleProtectedRoute
-                allowedRoles={[
-                  "Brand",
-                  "Brand Agency",
-                ]}
-              >
-
-                <BrandDashboard />
-
-              </RoleProtectedRoute>
-
-            </ProtectedRoute>
+            <RoleProtectedRoute
+              allowedRoles={[
+                "brand",
+                "brand agency",
+              ]}
+            >
+              <BrandDashboard />
+            </RoleProtectedRoute>
           }
         />
 
+        <Route
+          path="/brand/profile"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "brand",
+                "brand agency",
+              ]}
+            >
+              <BrandProfile />
+            </RoleProtectedRoute>
+          }
+        />
 
-        {/* UNKNOWN ROUTE */}
+        <Route
+          path="/brand/settings"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "brand",
+                "brand agency",
+              ]}
+            >
+              <BrandSettings />
+            </RoleProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/brand/notifications"
+          element={
+            <RoleProtectedRoute
+              allowedRoles={[
+                "brand",
+                "brand agency",
+              ]}
+            >
+              <Notifications />
+            </RoleProtectedRoute>
+          }
+        />
+
+        {/* FALLBACK */}
         <Route
           path="*"
           element={
             <Navigate
-              to="/"
+              to="/login"
               replace
             />
           }

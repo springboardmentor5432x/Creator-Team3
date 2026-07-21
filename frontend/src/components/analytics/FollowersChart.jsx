@@ -1,52 +1,82 @@
 import {
+  ResponsiveContainer,
   LineChart,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from "recharts";
 
-const followerData = [
-  { month: "Jan", followers: 820000 },
-  { month: "Feb", followers: 900000 },
-  { month: "Mar", followers: 980000 },
-  { month: "Apr", followers: 1080000 },
-  { month: "May", followers: 1160000 },
-  { month: "Jun", followers: 1250000 },
-];
+export default function FollowersChart({ data = [] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="empty-chart">
+        No follower data available
+      </div>
+    );
+  }
 
-export default function FollowersChart() {
+  const formattedData = data.map((item) => ({
+    name:
+      item.month ||
+      item.name ||
+      item.date,
+
+    followers:
+      Number(
+        item.followers ||
+        item.value ||
+        0
+      ),
+  }));
+
   return (
-    <div className="chart-wrapper">
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={followerData}>
-          <CartesianGrid strokeDasharray="3 3" />
+    <div style={{ width: "100%", height: 280 }}>
 
-          <XAxis dataKey="month" />
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
+
+        <LineChart data={formattedData}>
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#334155"
+          />
+
+          <XAxis
+            dataKey="name"
+            stroke="#94a3b8"
+          />
 
           <YAxis
+            stroke="#94a3b8"
             tickFormatter={(value) =>
-              `${(value / 1000000).toFixed(1)}M`
+              value.toLocaleString()
             }
           />
 
           <Tooltip
             formatter={(value) =>
-              [`${value.toLocaleString()}`, "Followers"]
+              Number(value).toLocaleString()
             }
           />
 
           <Line
             type="monotone"
             dataKey="followers"
-            stroke="#6366f1"
+            stroke="#3b82f6"
             strokeWidth={3}
             dot={{ r: 5 }}
+            activeDot={{ r: 7 }}
           />
+
         </LineChart>
+
       </ResponsiveContainer>
+
     </div>
   );
 }

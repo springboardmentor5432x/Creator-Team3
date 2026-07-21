@@ -1,368 +1,196 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-import {
-  Link,
-  useNavigate,
-} from "react-router-dom";
+const API_URL = "http://127.0.0.1:8000";
 
-
-export default function Login({
-  setToken,
-}) {
-
+export default function Login({ setToken }) {
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [
-    email,
-    setEmail,
-  ] = useState("");
-
-
-  const [
-    password,
-    setPassword,
-  ] = useState("");
-
-
-  const [
-    error,
-    setError,
-  ] = useState("");
-
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
-
-
-  // ===============================
-  // DO NOT AUTO-REDIRECT BASED ONLY
-  // ON OLD LOCAL STORAGE DATA
-  // ===============================
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
 
-    const token =
-      localStorage.getItem("token");
+    if (token && role) {
+      if (role === "creator") {
+        navigate("/creator", { replace: true });
+      }
 
-    const role =
-      (
-        localStorage.getItem("role") || ""
-      )
-        .toLowerCase()
-        .trim();
-
-
-    if (!token) {
-      return;
+      if (
+        role === "brand" ||
+        role === "brand agency"
+      ) {
+        navigate("/brand", { replace: true });
+      }
     }
-
-
-    if (role === "creator") {
-
-      navigate(
-        "/creator",
-        {
-          replace: true,
-        }
-      );
-
-    }
-
-    else if (
-      role === "brand" ||
-      role === "brand agency"
-    ) {
-
-      navigate(
-        "/brand",
-        {
-          replace: true,
-        }
-      );
-
-    }
-
   }, [navigate]);
 
-
-  // ===============================
-  // LOGIN
-  // ===============================
-  const handleSubmit = async (e) => {
-
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     setError("");
-
     setLoading(true);
 
-
     try {
+      const loginResponse = await fetch(
+        `${API_URL}/login`,
+        {
+          method: "POST",
 
-      const response =
-        await fetch(
-          "http://localhost:8000/login",
-          {
+          headers: {
+            "Content-Type": "application/json",
+          },
 
-            method: "POST",
+          body: JSON.stringify({
+            Email: email.trim(),
+            Password: password,
+          }),
+        }
+      );
 
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
+      const loginData =
+        await loginResponse.json();
 
-            body: JSON.stringify({
-
-              Email: email,
-
-              Password: password,
-
-            }),
-
-          }
-        );
-
-
-      const data =
-        await response.json();
-
-
-      if (!response.ok) {
-
+      if (!loginResponse.ok) {
         throw new Error(
-          data.detail ||
-          "Login failed"
+          loginData.detail ||
+            "Invalid email or password"
         );
-
       }
-
 
       const accessToken =
-        data.access_token;
-
+        loginData.access_token;
 
       if (!accessToken) {
-
         throw new Error(
-          "Access token not received"
+          "Access token was not received"
         );
-
       }
 
+      const userResponse = await fetch(
+        `${API_URL}/user`,
+        {
+          method: "GET",
 
-      // ===============================
-      // GET LOGGED-IN USER
-      // ===============================
-      const userResponse =
-        await fetch(
-          "http://localhost:8000/user",
-          {
-
-            method: "GET",
-
-            headers: {
-
-              Authorization:
-                `Bearer ${accessToken}`,
-
-            },
-
-          }
-        );
-
+          headers: {
+            Authorization:
+              `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       const userData =
         await userResponse.json();
 
-
       if (!userResponse.ok) {
-
         throw new Error(
           userData.detail ||
-          "Unable to get user details"
+            "Unable to get user details"
         );
-
       }
 
+      const userRole = String(
+        userData.role || ""
+      )
+        .toLowerCase()
+        .trim();
 
-      const user =
-        userData.user;
-
-
-      if (!user) {
-
+      if (!userRole) {
         throw new Error(
-          "User information missing"
+          "User role was not received"
         );
-
       }
 
-
-      // ===============================
-      // GET ROLE
-      // ===============================
-      const userRole =
-        (
-          user.role || ""
-        )
-          .toLowerCase()
-          .trim();
-
-
-      console.log(
-        "LOGGED USER:",
-        user
-      );
-
-      console.log(
-        "LOGGED USER ROLE:",
-        userRole
-      );
-
-
-      // ===============================
-      // SAVE CORRECT DATA
-      // ===============================
       localStorage.setItem(
         "token",
         accessToken
       );
-
 
       localStorage.setItem(
         "role",
         userRole
       );
 
-
       localStorage.setItem(
         "email",
-        user.Email || email
+        userData.Email || email.trim()
       );
 
-
-      // Update App state
       if (setToken) {
-
-        setToken(
-          accessToken
-        );
-
+        setToken(accessToken);
       }
 
-
-      // ===============================
-      // ROLE-BASED REDIRECT
-      // ===============================
-      if (
-        userRole === "creator"
-      ) {
-
-        navigate(
-          "/creator",
-          {
-            replace: true,
-          }
-        );
-
-      }
-
-      else if (
+      if (userRole === "creator") {
+        navigate("/creator", {
+          replace: true,
+        });
+      } else if (
         userRole === "brand" ||
         userRole === "brand agency"
       ) {
-
-        navigate(
-          "/brand",
-          {
-            replace: true,
-          }
-        );
-
-      }
-
-      else {
-
-        localStorage.clear();
-
-        if (setToken) {
-          setToken(null);
-        }
-
+        navigate("/brand", {
+          replace: true,
+        });
+      } else {
         throw new Error(
-          `Unknown role: ${user.role}`
+          "Unknown user role: " + userRole
         );
-
       }
 
-    }
-
-    catch (err) {
-
+    } catch (error) {
       console.error(
         "LOGIN ERROR:",
-        err
+        error
       );
 
-      setError(
-        err.message ||
-        "Login failed"
-      );
+      if (
+        error instanceof TypeError &&
+        error.message === "Failed to fetch"
+      ) {
+        setError(
+          "Cannot connect to backend. Make sure FastAPI is running on port 8000."
+        );
+      } else {
+        setError(
+          error.message ||
+            "Login failed"
+        );
+      }
 
-    }
-
-    finally {
-
+    } finally {
       setLoading(false);
-
     }
-
   };
 
-
   return (
-
     <div className="login-container">
 
       <div className="login-card">
-
 
         <div className="login-logo">
           ◈
         </div>
 
-
-        <h1>
-          CreatorIQ
-        </h1>
-
+        <h1>CreatorIQ</h1>
 
         <p className="login-subtitle">
           Sign in to your analytics dashboard
         </p>
 
-
         {error && (
-
           <div className="login-error">
-
             {error}
-
           </div>
-
         )}
-
 
         <form
           onSubmit={handleSubmit}
           className="login-form"
         >
-
 
           <div className="login-form-group">
 
@@ -374,14 +202,15 @@ export default function Login({
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
+              onChange={(event) =>
+                setEmail(
+                  event.target.value
+                )
               }
               required
             />
 
           </div>
-
 
           <div className="login-form-group">
 
@@ -393,30 +222,27 @@ export default function Login({
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
+              onChange={(event) =>
+                setPassword(
+                  event.target.value
+                )
               }
               required
             />
 
           </div>
 
-
           <button
             type="submit"
             className="login-button"
             disabled={loading}
           >
-
             {loading
               ? "Signing in..."
               : "Sign In"}
-
           </button>
 
-
         </form>
-
 
         <p className="login-register-text">
 
@@ -431,9 +257,7 @@ export default function Login({
 
         </p>
 
-
       </div>
-
 
       <style>{`
 
@@ -563,7 +387,5 @@ export default function Login({
       `}</style>
 
     </div>
-
   );
-
 }

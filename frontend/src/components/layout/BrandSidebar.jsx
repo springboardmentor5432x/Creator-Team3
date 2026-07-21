@@ -1,5 +1,7 @@
-import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import {
+  NavLink,
+  useNavigate,
+} from "react-router-dom";
 
 export default function BrandSidebar() {
   const navigate = useNavigate();
@@ -17,100 +19,160 @@ export default function BrandSidebar() {
     });
   };
 
+  const getLinkClass = ({
+    isActive,
+  }) =>
+    isActive
+      ? "brand-menu-item active"
+      : "brand-menu-item";
+
   return (
     <aside className="brand-sidebar">
 
-      {/* PROFILE */}
+      {/* =========================
+          PROFILE HEADER
+      ========================== */}
       <div className="brand-profile">
+
         <div className="brand-avatar">
           BA
         </div>
 
-        <h3>Brand Agency</h3>
+        <h3>
+          Brand Agency
+        </h3>
 
-        <p>Brand Manager</p>
+        <p>
+          Brand Manager
+        </p>
+
       </div>
 
 
-      {/* MENU */}
+      {/* =========================
+          NAVIGATION MENU
+      ========================== */}
       <nav className="brand-menu">
 
+        {/* DASHBOARD */}
         <NavLink
           to="/brand"
           end
-          className={({ isActive }) =>
-            isActive
-              ? "brand-menu-item active"
-              : "brand-menu-item"
-          }
+          className={getLinkClass}
         >
-          <span>📊</span>
-          <span>Dashboard</span>
+          <span className="menu-icon">
+            📊
+          </span>
+
+          <span>
+            Dashboard
+          </span>
         </NavLink>
 
 
+        {/* CAMPAIGNS */}
         <NavLink
           to="/brand/campaigns"
-          className={({ isActive }) =>
-            isActive
-              ? "brand-menu-item active"
-              : "brand-menu-item"
-          }
+          className={getLinkClass}
         >
-          <span>📢</span>
-          <span>Campaigns</span>
+          <span className="menu-icon">
+            📢
+          </span>
+
+          <span>
+            Campaigns
+          </span>
         </NavLink>
 
 
+        {/* CREATORS */}
         <NavLink
           to="/brand/creators"
-          className={({ isActive }) =>
-            isActive
-              ? "brand-menu-item active"
-              : "brand-menu-item"
-          }
+          className={getLinkClass}
         >
-          <span>👥</span>
-          <span>Creators</span>
+          <span className="menu-icon">
+            👥
+          </span>
+
+          <span>
+            Creators
+          </span>
         </NavLink>
 
 
+        {/* ANALYTICS */}
         <NavLink
           to="/brand/analytics"
-          className={({ isActive }) =>
-            isActive
-              ? "brand-menu-item active"
-              : "brand-menu-item"
-          }
+          className={getLinkClass}
         >
-          <span>📈</span>
-          <span>Analytics</span>
+          <span className="menu-icon">
+            📈
+          </span>
+
+          <span>
+            Analytics
+          </span>
+        </NavLink>
+        <NavLink
+  to="/brand/notifications"
+  className={({ isActive }) =>
+    isActive
+      ? "brand-menu-item active"
+      : "brand-menu-item"
+  }
+>
+  <span className="menu-icon">🔔</span>
+  <span>Notifications</span>
+</NavLink>
+
+
+        {/* PROFILE */}
+        <NavLink
+          to="/brand/profile"
+          className={getLinkClass}
+        >
+          <span className="menu-icon">
+            👤
+          </span>
+
+          <span>
+            Profile
+          </span>
         </NavLink>
 
 
+        {/* SETTINGS */}
         <NavLink
           to="/brand/settings"
-          className={({ isActive }) =>
-            isActive
-              ? "brand-menu-item active"
-              : "brand-menu-item"
-          }
+          className={getLinkClass}
         >
-          <span>⚙️</span>
-          <span>Settings</span>
+          <span className="menu-icon">
+            ⚙️
+          </span>
+
+          <span>
+            Settings
+          </span>
         </NavLink>
 
       </nav>
 
 
-      {/* LOGOUT BUTTON */}
+      {/* =========================
+          LOGOUT
+      ========================== */}
       <button
         type="button"
         className="brand-logout"
         onClick={handleLogout}
       >
-        <span>🚪</span>
-        <span>Logout</span>
+        <span className="menu-icon">
+          🚪
+        </span>
+
+        <span>
+          Logout
+        </span>
       </button>
 
     </aside>

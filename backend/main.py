@@ -11,6 +11,10 @@ from youtube import get_channel_stats
 from linkedin import router as linkedin_router
 app = FastAPI()
 app.include_router(linkedin_router)
+from models import User, CreatorProfile, Notification, ContentLink, RevenueRecord
+from instagram import router as insta_router
+app = FastAPI()
+app.include_router(insta_router)
 # Enable CORS for frontend local server
 app.add_middleware(
     CORSMiddleware,

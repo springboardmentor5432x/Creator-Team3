@@ -232,21 +232,20 @@ class Analytics(Base):
 
     __tablename__ = "analytics"
 
-
     id = Column(Integer, primary_key=True)
-
 
     user_id = Column(
         Integer,
         ForeignKey("users.id")
     )
 
-
     platform = Column(String)
 
     followers = Column(Integer, default=0)
 
     views = Column(Integer, default=0)
+
+    unique_viewers = Column(Integer, default=0)   # NEW
 
     likes = Column(Integer, default=0)
 
@@ -263,19 +262,15 @@ class Analytics(Base):
     impressions = Column(Integer, default=0)
 
     engagement_rate = Column(Float, default=0)
-
-
+    
     created_at = Column(
         DateTime,
         default=datetime.utcnow
     )
-
-
     user = relationship(
-        "User",
-        back_populates="analytics"
-    )
-
+    "User",
+    back_populates="analytics"
+)
 
 
 
@@ -369,6 +364,11 @@ class Audience(Base):
     active_hours = Column(String)
 
     percentage = Column(Float)
+    most_active_days = Column(String)
+    peak_engagement_time = Column(String)
+    activity_trend = Column(String)
+    city = Column(String)
+    region = Column(String)
 
 
     user = relationship(

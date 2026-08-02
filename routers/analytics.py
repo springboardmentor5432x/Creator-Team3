@@ -183,8 +183,9 @@ def get_followers(
         }
         for item in data
     ]
+
 # -----------------------------
-# Engagement Monitoring
+# Audience Engagement Insights
 # -----------------------------
 @router.get("/engagement")
 def get_engagement(
@@ -192,9 +193,9 @@ def get_engagement(
     db: Session = Depends(get_db)
 ):
     check_role(
-    user,
-    ["creator", "administrator"]
-)
+        user,
+        ["creator", "administrator"]
+    )
 
     email = user.get("Email")
 
@@ -208,26 +209,85 @@ def get_engagement(
             detail="User not found"
         )
 
-
     data = db.query(Analytics).filter(
         Analytics.user_id == current_user.id
+    ).order_by(
+        Analytics.created_at
     ).all()
-
 
     return [
         {
+            "date": item.created_at,
             "platform": item.platform,
             "likes": item.likes,
             "comments": item.comments,
             "shares": item.shares,
             "saves": item.saves,
-            "watch_time": item.watch_time,
             "engagement_rate": item.engagement_rate
         }
         for item in data
     ]
 # -----------------------------
-# Reach Analysis
+# Engagement Summary
+# -----------------------------
+@router.get("/engagement-summary")
+def get_engagement_summary(
+    user=Depends(verify_token),
+    db: Session = Depends(get_db)
+):
+    check_role(
+        user,
+        ["creator", "administrator"]
+    )
+
+    email = user.get("Email")
+
+    current_user = db.query(User).filter(
+        User.Email == email
+    ).first()
+
+    if not current_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    data = db.query(Analytics).filter(
+        Analytics.user_id == current_user.id
+    ).all()
+
+    if not data:
+        return {
+            "total_likes": 0,
+            "total_comments": 0,
+            "total_shares": 0,
+            "total_saves": 0,
+            "average_engagement_rate": 0
+        }
+
+    total_likes = sum(item.likes or 0 for item in data)
+
+    total_comments = sum(item.comments or 0 for item in data)
+
+    total_shares = sum(item.shares or 0 for item in data)
+
+    total_saves = sum(item.saves or 0 for item in data)
+
+    average_engagement = (
+        sum(item.engagement_rate or 0 for item in data)
+        / len(data)
+    )
+
+    return {
+        "total_likes": total_likes,
+        "total_comments": total_comments,
+        "total_shares": total_shares,
+        "total_saves": total_saves,
+        "average_engagement_rate": round(average_engagement, 2)
+    }
+
+# -----------------------------
+# Reach & Impressions Analysis
 # -----------------------------
 @router.get("/reach")
 def get_reach(
@@ -235,9 +295,9 @@ def get_reach(
     db: Session = Depends(get_db)
 ):
     check_role(
-    user,
-    ["creator", "administrator"]
-)
+        user,
+        ["creator", "administrator"]
+    )
 
     email = user.get("Email")
 
@@ -245,6 +305,47 @@ def get_reach(
         User.Email == email
     ).first()
 
+    if not current_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    data = db.query(Analytics).filter(
+        Analytics.user_id == current_user.id
+    ).order_by(
+        Analytics.created_at
+    ).all()
+
+    return [
+        {
+            "date": item.created_at,
+            "platform": item.platform,
+            "reach": item.reach,
+            "impressions": item.impressions,
+            "unique_viewers": item.unique_viewers,
+            "views": item.views
+        }
+        for item in data
+    ]
+# -----------------------------
+# Reach Summary
+# -----------------------------
+@router.get("/reach-summary")
+def get_reach_summary(
+    user=Depends(verify_token),
+    db: Session = Depends(get_db)
+):
+    check_role(
+        user,
+        ["creator", "administrator"]
+    )
+
+    email = user.get("Email")
+
+    current_user = db.query(User).filter(
+        User.Email == email
+    ).first()
 
     if not current_user:
         raise HTTPException(
@@ -252,21 +353,28 @@ def get_reach(
             detail="User not found"
         )
 
-
     data = db.query(Analytics).filter(
         Analytics.user_id == current_user.id
     ).all()
 
-
-    return [
-        {
-            "platform": item.platform,
-            "reach": item.reach,
-            "impressions": item.impressions,
-            "views": item.views
+    if not data:
+        return {
+            "total_reach": 0,
+            "total_impressions": 0,
+            "total_unique_viewers": 0
         }
-        for item in data
-    ]
+
+    total_reach = sum(item.reach or 0 for item in data)
+
+    total_impressions = sum(item.impressions or 0 for item in data)
+
+    total_unique_viewers = sum(item.unique_viewers or 0 for item in data)
+
+    return {
+        "total_reach": total_reach,
+        "total_impressions": total_impressions,
+        "total_unique_viewers": total_unique_viewers
+    }
 # -----------------------------
 # Performance Trends
 # -----------------------------
@@ -308,7 +416,8 @@ def get_trends(
             "views": item.views,
             "followers": item.followers,
             "reach": item.reach,
-            "engagement_rate": item.engagement_rate
+            "engagement_rate": item.engagement_rate,
+            "impressions":item.impressions
         }
         for item in data
     ]

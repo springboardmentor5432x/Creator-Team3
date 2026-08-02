@@ -339,3 +339,76 @@ def content_growth(
         }
         for item in data
     ]
+@router.get("/summary")
+def get_growth_summary(
+    user=Depends(verify_token),
+    db: Session = Depends(get_db)
+):
+    check_role(
+        user,
+        [
+            "creator",
+            "marketing team",
+            "administrator"
+        ]
+    )
+
+    email = user.get("Email")
+
+    current_user = db.query(User).filter(
+        User.Email == email
+    ).first()
+
+    if not current_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    growth_data = db.query(Growth).filter(
+        Growth.user_id == current_user.id
+    ).order_by(
+        Growth.date.desc()
+    ).all()
+
+    if not growth_data:
+        raise HTTPException(
+            status_code=404,
+            detail="Growth data not found"
+        )
+
+    latest = growth_data[0]
+
+    total_followers = latest.followers
+
+    # Default values
+    new_followers = 0
+    daily_growth = 0
+    weekly_growth = 0
+    monthly_growth = 0
+
+    if len(growth_data) > 1:
+        previous = growth_data[1]
+        new_followers = latest.followers - previous.followers
+        daily_growth = new_followers
+
+    if len(growth_data) >= 7:
+        weekly_growth = (
+            latest.followers -
+            growth_data[6].followers
+        )
+
+    if len(growth_data) >= 30:
+        monthly_growth = (
+            latest.followers -
+            growth_data[29].followers
+        )
+
+    return {
+        "total_followers": total_followers,
+        "new_followers": new_followers,
+        "daily_growth": daily_growth,
+        "weekly_growth": weekly_growth,
+        "monthly_growth": monthly_growth,
+        "growth_percentage": latest.growth_percentage
+    }

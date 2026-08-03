@@ -23,18 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 
-# Python venvs and cache (all locations)
-**/.venv/
-**/venv/
-**/__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.db
-*.sqlite3
-
 # Environment secrets
 backend/.env
+backend/.venv/
 .env
 .env.local
 .env.*

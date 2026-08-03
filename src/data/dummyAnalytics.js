@@ -156,3 +156,35 @@ export const platformPerformance = [
     color: '#9146FF'
   }
 ];
+
+export const contentGrowthData = [
+  { content: "AI Automation Guide", growth: 85 },
+  { content: "React 19 Deep Dive", growth: 72 },
+  { content: "Fullstack Architecture", growth: 64 },
+  { content: "Python FastAPI Setup", growth: 58 },
+  { content: "Tailwind vs Vanilla CSS", growth: 46 }
+];
+
+export const growthInsightsData = [
+  { title: "Peak Posting Time", value: "Tuesdays & Thursdays at 6:00 PM EST" },
+  { title: "Highest Converting Content", value: "Technical Tutorials (+34% Reach)" },
+  { title: "Audience Retention Spike", value: "First 30 seconds of Shorts/Reels" },
+  { title: "Virality Score", value: "8.4 / 10 (High Share Velocity)" }
+];
+
+export const historicalPerformanceData = [
+  { period: "Q1 2025", views: 1800000, engagement: 4.2 },
+  { period: "Q2 2025", views: 2200000, engagement: 4.5 },
+  { period: "Q3 2025", views: 2700000, engagement: 4.9 },
+  { period: "Q4 2025", views: 3400000, engagement: 5.3 },
+  { period: "Q1 2026", views: 4100000, engagement: 5.8 }
+];
+
+export const categoryPerformance = [
+  { category: "Tutorials", views: 450000, likes: 52000 },
+  { category: "Vlogs", views: 280000, likes: 31000 },
+  { category: "Reviews", views: 390000, likes: 44000 },
+  { category: "Shorts", views: 820000, likes: 98000 },
+  { category: "Live Streams", views: 190000, likes: 21000 }
+];
+

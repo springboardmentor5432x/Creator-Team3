@@ -112,13 +112,62 @@ class AudienceAggregator:
                 {"country": "Germany", "value": 12},
                 {"country": "Others", "value": 10}
             ]
-            device = [{"name": "Mobile", "value": 68}, {"name": "Desktop", "value": 24}, {"name": "TV / Tablet", "value": 8}]
+        device = [
+            {"device": "Mobile App (iOS/Android)", "pct": 62, "color": "#3b82f6"},
+            {"device": "Desktop Web Browser", "pct": 24, "color": "#10b981"},
+            {"device": "Tablet Device", "pct": 9, "color": "#f59e0b"},
+            {"device": "Smart TV / Streaming", "pct": 5, "color": "#8b5cf6"}
+        ]
+
+        top_cities = [
+            {"city": "New York", "country": "United States", "percentage": 14, "followers": 175602},
+            {"city": "London", "country": "United Kingdom", "percentage": 9, "followers": 112887},
+            {"city": "Mumbai", "country": "India", "percentage": 8, "followers": 100344},
+            {"city": "Toronto", "country": "Canada", "percentage": 6, "followers": 75258},
+            {"city": "Berlin", "country": "Germany", "percentage": 5, "followers": 62715}
+        ]
+
+        regions = [
+            {"region": "North America", "share": 47},
+            {"region": "Europe", "share": 24},
+            {"region": "Asia Pacific", "share": 21},
+            {"region": "Latin America", "share": 5},
+            {"region": "Rest of World", "share": 3}
+        ]
+
+        active_hours = [
+            {"hour": f"{h:02d}:00", "activity": 15 if h < 6 else (45 if h < 12 else (95 if 17 <= h <= 21 else 60))}
+            for h in range(24)
+        ]
 
         return {
             "available": True,
             "platform": p_clean.title(),
+            "overview": {
+                "totalFollowers": 1254300,
+                "newFollowers": 24300,
+                "monthlyGrowthPct": 4.8,
+                "reach": 4820000,
+                "impressions": 8432000,
+                "avgEngagementRate": 4.85,
+                "reachTrendPct": 12.4,
+                "impressionTrendPct": 8.6,
+                "uniqueViewers": 3150000
+            },
             "gender": gender,
             "age": age,
             "location": location,
-            "device": device
+            "regions": regions,
+            "topCities": top_cities,
+            "device": device,
+            "activeHours": active_hours,
+            "peakEngagement": "Tuesday & Thursday at 6:00 PM EST",
+            "engagementInsights": {
+                "likes": 1240000,
+                "comments": 89300,
+                "shares": 45200,
+                "saves": 32100,
+                "engagementRate": 4.85,
+                "interactionVelocity": "High (+14.2% MoM)"
+            }
         }

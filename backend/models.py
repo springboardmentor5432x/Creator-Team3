@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean, DateTime, Date
 from sqlalchemy.orm import relationship
 from database import Base
 from datetime import datetime
@@ -24,6 +24,9 @@ class User(Base):
     campaigns = relationship("Campaign", back_populates="user", cascade="all, delete-orphan")
     user_settings = relationship("UserSetting", back_populates="user", cascade="all, delete-orphan")
     instagram_accounts = relationship("InstagramAccount", back_populates="user", cascade="all, delete-orphan")
+    sponsorship_deals = relationship("SponsorshipDeal", back_populates="user", cascade="all, delete-orphan")
+    affiliate_products = relationship("AffiliateProduct", back_populates="user", cascade="all, delete-orphan")
+    subscription_tiers = relationship("SubscriptionTier", back_populates="user", cascade="all, delete-orphan")
 
 class CreatorProfile(Base):
     __tablename__ = "creator_profile"
@@ -63,6 +66,9 @@ class SocialAccount(Base):
     platform = Column(String, nullable=False)
     account_name = Column(String, nullable=False)
     followers = Column(Integer, default=0)
+    channel_id = Column(String, default="")
+    channel_handle = Column(String, default="")
+    thumbnail_url = Column(String, default="")
 
     creator_profile = relationship("CreatorProfile", back_populates="social_accounts")
     audience_data = relationship("AudienceData", back_populates="social_account", cascade="all, delete-orphan")
@@ -88,6 +94,12 @@ class AudienceData(Base):
     age = Column(String, default="")
     gender = Column(String, default="")
     location = Column(String, default="")
+    country = Column(String, default="")
+    city = Column(String, default="")
+    region = Column(String, default="")
+    device = Column(String, default="")
+    active_hours = Column(String, default="")
+    most_active_days = Column(String, default="")
 
     social_account = relationship("SocialAccount", back_populates="audience_data")
 
@@ -112,10 +124,15 @@ class ContentLink(Base):
     url = Column(String, nullable=False)
     platform = Column(String, nullable=False)  # "YouTube", "Instagram", "LinkedIn", "Twitch"
     title = Column(String, nullable=False)
+    thumbnail_url = Column(String, default="")
     views = Column(Integer, default=0)
     likes = Column(Integer, default=0)
     comments = Column(Integer, default=0)
     shares = Column(Integer, default=0)
+    saves = Column(Integer, default=0)
+    watch_time_sec = Column(Integer, default=0)
+    reach = Column(Integer, default=0)
+    publish_date = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="content_links")
@@ -131,6 +148,49 @@ class RevenueRecord(Base):
     date = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="revenue_records")
+
+class SponsorshipDeal(Base):
+    __tablename__ = "sponsorship_deals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    brand_name = Column(String, nullable=False)
+    campaign_name = Column(String, nullable=False)
+    amount = Column(Float, default=0.0)
+    start_date = Column(DateTime, default=datetime.utcnow)
+    end_date = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default="Active")
+    payment_status = Column(String, default="Pending")
+
+    user = relationship("User", back_populates="sponsorship_deals")
+
+class AffiliateProduct(Base):
+    __tablename__ = "affiliate_products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    product_name = Column(String, nullable=False)
+    tracking_link = Column(String, nullable=False)
+    platform = Column(String, default="General")
+    clicks = Column(Integer, default=0)
+    conversions = Column(Integer, default=0)
+    commission_rate = Column(Float, default=10.0)
+    total_earnings = Column(Float, default=0.0)
+
+    user = relationship("User", back_populates="affiliate_products")
+
+class SubscriptionTier(Base):
+    __tablename__ = "subscription_tiers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    tier_name = Column(String, nullable=False)
+    price = Column(Float, default=4.99)
+    members_count = Column(Integer, default=0)
+    perks = Column(String, default="")
+    monthly_revenue = Column(Float, default=0.0)
+
+    user = relationship("User", back_populates="subscription_tiers")
 
 class Growth(Base):
     __tablename__ = "growth"
@@ -381,5 +441,14 @@ class TwitchSnapshot(Base):
     hours_watched = Column(Integer, default=0)
     streams_count = Column(Integer, default=0)
 
+class GrowthSnapshot(Base):
+    __tablename__ = "growth_snapshots"
 
-
+    id = Column(Integer, primary_key=True, index=True)
+    creator_id = Column(Integer, ForeignKey("creator_profile.creator_id"))
+    platform = Column(String)
+    snapshot_date = Column(Date)
+    followers = Column(Integer, default=0)
+    views = Column(Integer, default=0)
+    watch_time_hours = Column(Integer, default=0)
+    engagement_rate = Column(Float, default=0.0)

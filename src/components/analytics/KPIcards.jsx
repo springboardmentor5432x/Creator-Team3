@@ -16,125 +16,35 @@ const formatNumber = (num) => {
 export default function KPICards({ data = defaultKpiData }) {
   const metrics = [];
 
-  if (data.followers) {
-    metrics.push({
-      key: 'followers',
-      label: data.followers.label || 'Followers',
-      value: data.followers.value,
-      change: data.followers.change,
-      status: data.followers.status || 'positive',
-      icon: '👥',
-      spark: [{v: 100}, {v: 120}, {v: 150}, {v: 140}, {v: 170}, {v: 210}, {v: 240}]
-    });
-  }
+  const metricDefs = [
+    { key: 'followers', fallbackLabel: 'Followers', spark: [{v:100},{v:120},{v:150},{v:140},{v:170},{v:210},{v:240}] },
+    { key: 'views', fallbackLabel: 'Total Views', spark: [{v:250},{v:290},{v:270},{v:350},{v:310},{v:410},{v:450}] },
+    { key: 'shortsViews', fallbackLabel: 'Shorts Views', spark: [{v:80},{v:110},{v:95},{v:140},{v:125},{v:160},{v:180}] },
+    { key: 'videoViews', fallbackLabel: 'Video Views', spark: [{v:170},{v:180},{v:175},{v:210},{v:185},{v:250},{v:270}] },
+    { key: 'reelsViews', fallbackLabel: 'Reels Views', spark: [{v:60},{v:75},{v:70},{v:110},{v:90},{v:130},{v:150}] },
+    { key: 'postViews', fallbackLabel: 'Post Views', spark: [{v:110},{v:105},{v:110},{v:100},{v:95},{v:120},{v:120}] },
+    { key: 'likes', fallbackLabel: 'Total Likes', spark: [{v:90},{v:130},{v:110},{v:160},{v:140},{v:180},{v:200}] },
+    { key: 'comments', fallbackLabel: 'Total Comments', spark: [{v:40},{v:30},{v:45},{v:35},{v:50},{v:42},{v:55}] },
+    { key: 'watchTime', fallbackLabel: 'Watch Time', spark: [{v:200},{v:220},{v:210},{v:260},{v:250},{v:300},{v:320}] },
+    { key: 'engagementRate', fallbackLabel: 'Engagement Rate', spark: [{v:4.2},{v:4.5},{v:4.1},{v:4.8},{v:4.6},{v:5.1},{v:5.6}], suffix: '%' },
+  ];
 
-  if (data.views) {
-    metrics.push({
-      key: 'views',
-      label: data.views.label || 'Total Views',
-      value: data.views.value,
-      change: data.views.change,
-      status: data.views.status || 'positive',
-      icon: '👁️',
-      spark: [{v: 250}, {v: 290}, {v: 270}, {v: 350}, {v: 310}, {v: 410}, {v: 450}]
-    });
-  }
-
-  if (data.shortsViews) {
-    metrics.push({
-      key: 'shortsViews',
-      label: data.shortsViews.label,
-      value: data.shortsViews.value,
-      change: data.shortsViews.change,
-      status: data.shortsViews.status || 'positive',
-      icon: '⚡',
-      spark: [{v: 80}, {v: 110}, {v: 95}, {v: 140}, {v: 125}, {v: 160}, {v: 180}]
-    });
-  }
-
-  if (data.videoViews) {
-    metrics.push({
-      key: 'videoViews',
-      label: data.videoViews.label,
-      value: data.videoViews.value,
-      change: data.videoViews.change,
-      status: data.videoViews.status || 'positive',
-      icon: '📺',
-      spark: [{v: 170}, {v: 180}, {v: 175}, {v: 210}, {v: 185}, {v: 250}, {v: 270}]
-    });
-  }
-
-  if (data.reelsViews) {
-    metrics.push({
-      key: 'reelsViews',
-      label: data.reelsViews.label,
-      value: data.reelsViews.value,
-      change: data.reelsViews.change,
-      status: data.reelsViews.status || 'positive',
-      icon: '🌀',
-      spark: [{v: 60}, {v: 75}, {v: 70}, {v: 110}, {v: 90}, {v: 130}, {v: 150}]
-    });
-  }
-
-  if (data.postViews) {
-    metrics.push({
-      key: 'postViews',
-      label: data.postViews.label,
-      value: data.postViews.value,
-      change: data.postViews.change,
-      status: data.postViews.status || 'positive',
-      icon: '🖼️',
-      spark: [{v: 110}, {v: 105}, {v: 110}, {v: 100}, {v: 95}, {v: 120}, {v: 120}]
-    });
-  }
-
-  if (data.likes) {
-    metrics.push({
-      key: 'likes',
-      label: data.likes.label || 'Total Likes',
-      value: data.likes.value,
-      change: data.likes.change,
-      status: data.likes.status || 'positive',
-      icon: '❤️',
-      spark: [{v: 90}, {v: 130}, {v: 110}, {v: 160}, {v: 140}, {v: 180}, {v: 200}]
-    });
-  }
-
-  if (data.comments) {
-    metrics.push({
-      key: 'comments',
-      label: data.comments.label || 'Total Comments',
-      value: data.comments.value,
-      change: data.comments.change,
-      status: data.comments.status || 'positive',
-      icon: '💬',
-      spark: [{v: 40}, {v: 30}, {v: 45}, {v: 35}, {v: 50}, {v: 42}, {v: 55}]
-    });
-  }
-
-  if (data.engagementRate) {
-    metrics.push({
-      key: 'engagementRate',
-      label: data.engagementRate.label || 'Engagement Rate',
-      value: data.engagementRate.value,
-      change: data.engagementRate.change,
-      status: data.engagementRate.status || 'positive',
-      suffix: '%',
-      icon: '📈',
-      spark: [{v: 4.2}, {v: 4.5}, {v: 4.1}, {v: 4.8}, {v: 4.6}, {v: 5.1}, {v: 5.6}]
-    });
+  for (const def of metricDefs) {
+    if (data[def.key]) {
+      metrics.push({
+        key: def.key,
+        label: data[def.key].label || def.fallbackLabel,
+        value: data[def.key].value,
+        change: data[def.key].change,
+        status: data[def.key].status || 'positive',
+        spark: def.spark,
+        suffix: def.suffix
+      });
+    }
   }
 
   return (
-    <div className="kpi-grid">
-      <style>{`
-        .kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-          gap: 1.5rem;
-          width: 100%;
-        }
-      `}</style>
+    <div className="kpi-grid stagger-children">
       {metrics.map((metric) => (
         <MetricCard
           key={metric.key}
@@ -142,7 +52,6 @@ export default function KPICards({ data = defaultKpiData }) {
           value={metric.key === 'engagementRate' ? `${metric.value}%` : formatNumber(metric.value)}
           change={metric.change}
           changeStatus={metric.status}
-          icon={metric.icon}
           sparkData={metric.spark}
         />
       ))}

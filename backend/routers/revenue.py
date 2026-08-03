@@ -136,3 +136,73 @@ def add_revenue_record(data: RevenueSubmit, user=Depends(verify_token), db: Sess
         "description": new_record.description,
         "date": new_record.date.isoformat()
     }
+
+@router.get("/sponsorships")
+def get_sponsorships(user=Depends(verify_token), db: Session = Depends(get_db)):
+    from models import SponsorshipDeal
+    email = user.get("Email")
+    db_user = db.query(User).filter(User.Email == email).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    deals = db.query(SponsorshipDeal).filter(SponsorshipDeal.user_id == db_user.id).all()
+    return [
+        {
+            "id": d.id,
+            "brandName": d.brand_name,
+            "campaignName": d.campaign_name,
+            "amount": d.amount,
+            "startDate": d.start_date.strftime("%Y-%m-%d") if d.start_date else "2026-01-01",
+            "endDate": d.end_date.strftime("%Y-%m-%d") if d.end_date else "2026-02-01",
+            "status": d.status,
+            "paymentStatus": d.payment_status
+        } for d in deals
+    ]
+
+@router.get("/affiliates")
+def get_affiliates(user=Depends(verify_token), db: Session = Depends(get_db)):
+    from models import AffiliateProduct
+    email = user.get("Email")
+    db_user = db.query(User).filter(User.Email == email).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    products = db.query(AffiliateProduct).filter(AffiliateProduct.user_id == db_user.id).all()
+    total_rev = sum(p.total_earnings for p in products)
+    return {
+        "totalRevenue": total_rev,
+        "products": [
+            {
+                "id": p.id,
+                "product": p.product_name,
+                "link": p.tracking_link,
+                "platform": p.platform,
+                "clicks": p.clicks,
+                "conversions": p.conversions,
+                "convRate": f"{round((p.conversions / max(1, p.clicks)) * 100, 1)}%",
+                "commissionRate": f"{p.commission_rate}%",
+                "totalEarnings": f"${p.total_earnings:,.2f}"
+            } for p in products
+        ]
+    }
+
+@router.get("/subscriptions")
+def get_subscriptions(user=Depends(verify_token), db: Session = Depends(get_db)):
+    from models import SubscriptionTier
+    email = user.get("Email")
+    db_user = db.query(User).filter(User.Email == email).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    tiers = db.query(SubscriptionTier).filter(SubscriptionTier.user_id == db_user.id).all()
+    total_mrr = sum(t.monthly_revenue for t in tiers)
+    return {
+        "mrr": total_mrr,
+        "tiers": [
+            {
+                "id": t.id,
+                "name": t.tier_name,
+                "price": f"${t.price:.2f} / mo",
+                "members": t.members_count,
+                "perks": t.perks,
+                "monthlyRevenue": f"${t.monthly_revenue:,.2f}"
+            } for t in tiers
+        ]
+    }

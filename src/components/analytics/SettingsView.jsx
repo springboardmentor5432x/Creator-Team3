@@ -595,6 +595,12 @@ function ConnectedAccountsTab({ token }) {
   const [ytResult, setYtResult] = useState(null);
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState('');
+  
+  const [igHandle, setIgHandle] = useState('cristiano');
+  const [igResult, setIgResult] = useState(null);
+  const [igLoading, setIgLoading] = useState(false);
+  const [igError, setIgError] = useState('');
+  
   const [connLoading, setConnLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
 
@@ -639,6 +645,31 @@ function ConnectedAccountsTab({ token }) {
       setYtError(err.message);
     } finally {
       setYtLoading(false);
+    }
+  };
+
+  const handleFetchInstagram = async (e) => {
+    e.preventDefault();
+    setIgResult(null);
+    setIgError('');
+    setIgLoading(true);
+    setFeedback({ type: '', text: '' });
+
+    try {
+      const cleanHandle = igHandle.replace('@', '').trim();
+      const res = await fetch(`http://127.0.0.1:8000/api/social/instagram/scrape/${cleanHandle}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to fetch Instagram stats');
+      }
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      setIgResult(data);
+    } catch (err) {
+      setIgError(err.message);
+    } finally {
+      setIgLoading(false);
     }
   };
 
@@ -845,6 +876,90 @@ function ConnectedAccountsTab({ token }) {
           )}
         </div>
 
+        {/* Instagram Connection Card */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            📸 Connect Instagram Profile
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Fetch live statistics directly from Instagram and bind them to your dashboard.
+          </p>
+          
+          <form onSubmit={handleFetchInstagram} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ position: 'relative', width: '300px' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-secondary)' }}>@</span>
+              <input 
+                type="text" 
+                className="settings-input"
+                style={{ width: '100%', paddingLeft: '30px' }}
+                placeholder="instagram_handle"
+                value={igHandle}
+                onChange={(e) => setIgHandle(e.target.value)}
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="save-btn" 
+              style={{ padding: '10px 18px', margin: 0, background: '#db2777' }}
+              disabled={igLoading}
+            >
+              {igLoading ? 'Querying...' : 'Query Profile'}
+            </button>
+          </form>
+
+          {igError && (
+            <div className="settings-banner error" style={{ margin: '1rem 0 0 0' }}>
+              Instagram API Error: {igError}
+            </div>
+          )}
+
+          {igResult && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(219, 39, 119, 0.3)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <h4 style={{ margin: 0, color: '#db2777', fontSize: '0.95rem' }}>
+                Profile Found: @{igResult.username}
+              </h4>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Followers</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{igResult.followers.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Following</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{igResult.following.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Posts</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{igResult.posts.toLocaleString()}</div>
+                </div>
+              </div>
+              <button 
+                type="button"
+                className="save-btn"
+                style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', alignSelf: 'flex-start' }}
+                disabled={connLoading}
+                onClick={() => handleSaveConnection('Instagram', `@${igResult.username}`, igResult.followers)}
+              >
+                {connLoading ? 'Linking...' : 'Confirm Connection ➔'}
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Demo Platform Connectors */}
         <div style={{
           background: 'rgba(255,255,255,0.02)',
@@ -859,14 +974,6 @@ function ConnectedAccountsTab({ token }) {
             Simulate connections for other social accounts to verify multi-platform revenue calculations and audience charts.
           </p>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button 
-              type="button" 
-              className="save-btn"
-              style={{ background: '#db2777' }}
-              onClick={() => handleSaveConnection('Instagram', '@instagram_demo', 450000)}
-            >
-              Connect Instagram Account
-            </button>
             <button 
               type="button" 
               className="save-btn"

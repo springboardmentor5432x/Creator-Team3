@@ -12,6 +12,24 @@ import Register from "./pages/Register";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import BrandDashboard from "./pages/BrandDashboard";
 
+import AudienceAnalytics from "./pages/AudienceAnalytics";
+import CreatorAnalytics from "./pages/CreatorAnalytics";
+import CreatorContent from "./pages/CreatorContent";
+import CreatorEarnings from "./pages/CreatorEarnings";
+import CreatorCampaigns from "./pages/CreatorCampaigns";
+import CreatorProfile from "./pages/CreatorProfile";
+import CreatorSettings from "./pages/CreatorSettings";
+
+import BrandAnalytics from "./pages/BrandAnalytics";
+import BrandCampaigns from "./pages/BrandCampaigns";
+import BrandCreators from "./pages/BrandCreators";
+import BrandProfile from "./pages/BrandProfile";
+import BrandSettings from "./pages/BrandSettings";
+
+import Notifications from "./pages/Notifications";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+
 
 // ===============================
 // PROTECTED ROUTE
@@ -164,6 +182,94 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/creator/analytics"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <CreatorAnalytics />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/content"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <CreatorContent />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/audience"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <AudienceAnalytics />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/earnings"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <CreatorEarnings />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/campaigns"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <CreatorCampaigns />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/profile"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <CreatorProfile />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/settings"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <CreatorSettings />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/creator/notifications"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Creator"]}>
+                <Notifications />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
 
         {/* BRAND DASHBOARD */}
         <Route
@@ -186,6 +292,92 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/brand/campaigns"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Brand", "Brand Agency"]}>
+                <BrandCampaigns />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/brand/creators"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Brand", "Brand Agency"]}>
+                <BrandCreators />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/brand/analytics"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Brand", "Brand Agency"]}>
+                <BrandAnalytics />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/brand/profile"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Brand", "Brand Agency"]}>
+                <BrandProfile />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/brand/settings"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Brand", "Brand Agency"]}>
+                <BrandSettings />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/brand/notifications"
+          element={
+            <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={["Brand", "Brand Agency"]}>
+                <Notifications />
+              </RoleProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+
+
+        {/* FALLBACKS */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
 
         {/* UNKNOWN ROUTE */}
         <Route
@@ -202,4 +394,4 @@ export default function App() {
 
     </BrowserRouter>
   );
-}
+}

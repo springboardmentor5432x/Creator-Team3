@@ -20,8 +20,12 @@ import TopContentTable from './TopContentTable';
 import AICopilot from './AICopilot';
 import PlatformDashboardView from './PlatformDashboardView';
 import DebugView from './DebugView';
+import TeamWorkspaceView from './TeamWorkspaceView';
+import AudienceAnalyticsView from './AudienceAnalyticsView';
 import DashboardLayout from './DashboardLayout';
 import PageTransition from './PageTransition';
+
+
 
 import { kpiData as dummyKpiData, platformPerformance as dummyPerformance } from '../../data/dummyAnalytics';
 
@@ -51,12 +55,8 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
 
       try {
         setLoading(true);
-        // Fetch Instagram Graph API Live Details
-        const resIg = await fetch(`${baseUrl}/api/instagram/profile`, { headers });
-        if (resIg.ok) {
-          const igJson = await resIg.json();
-          setInstagramData(igJson);
-        }
+        // Removed invalid /api/instagram/profile fetch, Instagram data will be parsed from /api/analytics
+
 
         // Fetch KPIs & performance
         const resStats = await fetch(`${baseUrl}/api/analytics`, { headers });
@@ -64,7 +64,12 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
           const stats = await resStats.json();
           if (stats.kpiData) setKpiData(stats.kpiData);
           if (stats.platformComparison || stats.platformPerformance) {
-            setPlatformPerformance(stats.platformComparison || stats.platformPerformance);
+            const perf = stats.platformComparison || stats.platformPerformance;
+            setPlatformPerformance(perf);
+            
+            // Extract Instagram data for the top live card
+            const igPerf = perf.find(p => p.platform === 'Instagram' && p.status === 'connected');
+            if (igPerf) setInstagramData(igPerf);
           }
           if (stats.live_data === false) {
             setLiveDataWarning(stats.error + " " + (stats.action_required || ""));
@@ -151,6 +156,189 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
 
   return (
     <div style={{ backgroundColor: 'var(--bg-primary)', minHeight: '100vh', color: 'var(--text-primary)' }}>
+      <style>{`
+        .dash-warning {
+          background: var(--warning-subtle);
+          border: 1px solid rgba(245, 158, 11, 0.2);
+          color: var(--warning);
+          padding: var(--space-3) var(--space-4);
+          border-radius: var(--radius-xl);
+          font-size: var(--text-sm);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          animation: fadeInDown var(--duration-slow) var(--ease-spring) both;
+        }
+
+        .dash-overview {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-6);
+        }
+
+        .dash-section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: baseline;
+        }
+
+        .dash-section-title {
+          margin: 0;
+          font-size: var(--text-md);
+          font-weight: var(--weight-semibold);
+          color: var(--text-primary);
+          letter-spacing: var(--tracking-tight);
+        }
+
+        .dash-section-subtitle {
+          font-size: var(--text-xs);
+          color: var(--text-muted);
+        }
+
+        .dash-platform-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: var(--space-3);
+        }
+
+        .dash-platform-card {
+          padding: var(--space-4);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-2);
+          cursor: pointer;
+          transition: all var(--duration-normal) var(--ease-default);
+          border-radius: var(--card-radius);
+          background: var(--bg-card);
+          border: 1px solid var(--border-primary);
+          box-shadow: var(--shadow-card);
+        }
+
+        .dash-platform-card:hover {
+          border-color: var(--border-hover);
+          box-shadow: var(--shadow-md);
+          transform: translateY(-1px);
+        }
+
+        .dash-platform-card.disconnected {
+          cursor: default;
+          opacity: 0.6;
+        }
+
+        .dash-platform-card.disconnected:hover {
+          transform: none;
+          box-shadow: var(--shadow-card);
+        }
+
+        .dash-platform-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .dash-platform-name {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          font-weight: var(--weight-semibold);
+          font-size: var(--text-sm);
+          color: var(--text-primary);
+        }
+
+        .dash-platform-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+
+        .dash-platform-followers {
+          font-size: var(--text-xl);
+          font-weight: var(--weight-bold);
+          color: var(--text-primary);
+          letter-spacing: var(--tracking-tighter);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .dash-platform-followers span {
+          font-size: var(--text-xs);
+          color: var(--text-muted);
+          font-weight: var(--weight-normal);
+          margin-left: var(--space-1);
+        }
+
+        .dash-platform-meta {
+          font-size: var(--text-xs);
+          color: var(--text-muted);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .dash-platform-cta {
+          font-weight: var(--weight-semibold);
+          transition: color var(--duration-fast) var(--ease-default);
+        }
+
+        .dash-charts-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: var(--space-4);
+        }
+
+        .dash-ig-banner {
+          background: var(--bg-card);
+          border: 1px solid var(--border-primary);
+          border-radius: var(--card-radius);
+          padding: var(--space-4) var(--space-5);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: var(--space-4);
+          animation: fadeInUp var(--duration-slow) var(--ease-spring) both;
+          box-shadow: var(--shadow-card);
+        }
+
+        .dash-ig-left {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
+        }
+
+        .dash-ig-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 2px solid var(--accent-primary);
+          object-fit: cover;
+        }
+
+        .dash-ig-name {
+          font-weight: var(--weight-semibold);
+          font-size: var(--text-base);
+          color: var(--text-primary);
+        }
+
+        .dash-ig-stats {
+          font-size: var(--text-xs);
+          color: var(--text-muted);
+          margin-top: var(--space-0_5);
+          font-variant-numeric: tabular-nums;
+        }
+
+        @media (max-width: 900px) {
+          .dash-charts-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .dash-platform-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       <DashboardLayout
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -162,23 +350,11 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
       >
         <PageTransition key={activeTab}>
           {liveDataWarning && activeTab !== 'settings' && (
-            <div style={{
-              background: 'rgba(245, 158, 11, 0.12)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
-              color: '#fbbf24',
-              padding: '12px 18px',
-              borderRadius: '12px',
-              fontSize: '13px',
-              marginBottom: '20px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <span>⚠️ <strong>Notice:</strong> {liveDataWarning}</span>
+            <div className="dash-warning">
+              <span><strong>Notice:</strong> {liveDataWarning}</span>
               <button 
                 onClick={() => setActiveTab('settings')}
-                className="theme-button-primary"
-                style={{ fontSize: '12px', padding: '4px 12px' }}
+                className="ds-btn-secondary ds-btn-sm"
               >
                 Settings
               </button>
@@ -203,174 +379,130 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
             <AdminPanel token={token} />
           ) : activeTab === 'ai_copilot' ? (
             <AICopilot token={token} />
+          ) : activeTab === 'team' ? (
+            <TeamWorkspaceView token={token} />
           ) : activeTab === 'audience' ? (
-            <AudiencePieChart data={audienceData} setActiveTab={setActiveTab} token={token} />
+            <AudienceAnalyticsView token={token} />
           ) : (
-            <>
-              {/* Default Overview Dashboard */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {/* Instagram Graph API Live Connected Status Card */}
-                {instagramData && instagramData.connected ? (
-                  <div style={{
-                    background: 'linear-gradient(135deg, rgba(225, 48, 108, 0.12), rgba(131, 58, 180, 0.12))',
-                    border: '1px solid rgba(225, 48, 108, 0.3)',
-                    borderRadius: '16px',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-                    gap: '12px'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <img 
-                        src={instagramData.profile.profile_picture_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150"} 
-                        alt="Profile" 
-                        style={{ width: '46px', height: '46px', borderRadius: '50%', border: '2px solid #e1306c', objectFit: 'cover' }}
-                      />
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)' }}>@{instagramData.profile.username}</span>
-                          <span style={{ background: 'rgba(225, 48, 108, 0.2)', color: '#e1306c', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px' }}>
-                            META GRAPH API LIVE
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                          {instagramData.profile.followers_count.toLocaleString()} Followers • Reach: {instagramData.analytics.reach.toLocaleString()} • Engagement: {instagramData.analytics.avg_engagement}%
-                        </div>
+
+            <div className="dash-overview">
+              {/* Instagram Live Banner */}
+              {instagramData && instagramData.status === 'connected' ? (
+                <div className="dash-ig-banner">
+                  <div className="dash-ig-left">
+                    <img 
+                      src={`https://api.dicebear.com/7.x/identicon/svg?seed=${instagramData.account_name}`} 
+                      alt="Profile" 
+                      className="dash-ig-avatar"
+                    />
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+                        <span className="dash-ig-name">{instagramData.account_name}</span>
+                        <span className="ds-badge ds-badge-default">LIVE</span>
+                      </div>
+                      <div className="dash-ig-stats">
+                        {(instagramData.followers || 0).toLocaleString()} followers · {(instagramData.views || 0).toLocaleString()} views
                       </div>
                     </div>
-
-                    <div style={{ textAlign: 'right', fontSize: '11px', color: 'var(--text-secondary)' }}>
-                      <div>Last Synced: <strong>{instagramData.profile.last_synced_at}</strong></div>
-                      <div style={{ color: '#10b981', marginTop: '2px' }}>● Live Auto-Sync Active (Every 15m)</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
+                      Real-time sync
                     </div>
-                  </div>
-                ) : (
-                  <div style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '16px',
-                    padding: '16px 20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    color: 'var(--text-secondary)',
-                    fontSize: '13px'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>📸</span>
-                      <span><strong>Connect your Instagram Business Account</strong> to view live Meta Graph API analytics, reach, and reels insights.</span>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--success)', marginTop: 'var(--space-0_5)' }}>
+                      ● Active
                     </div>
-                    <button 
-                      onClick={() => setActiveTab('settings')}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        background: 'var(--accent-primary)',
-                        color: '#ffffff',
-                        border: 'none',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Connect Account ➔
-                    </button>
-                  </div>
-                )}
-
-                {/* Multi-Platform Aggregated Status Grid */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                      🌐 Aggregated Multi-Platform Channel Telemetry
-                    </h3>
-                    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                      Aggregating connected accounts only
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                    {(Array.isArray(platformPerformance) ? platformPerformance : []).map((p) => {
-                      const isConn = p.status === 'connected';
-                      return (
-                        <div
-                          key={p.platform}
-                          className="theme-card"
-                          onClick={() => isConn && setActiveTab(`platform_${p.platform.toLowerCase()}`)}
-                          style={{
-                            padding: '16px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '8px',
-                            cursor: isConn ? 'pointer' : 'default',
-                            border: isConn ? `1px solid ${p.color}44` : '1px solid var(--border-color)',
-                            background: isConn ? `linear-gradient(135deg, ${p.color}11, var(--bg-card))` : 'var(--bg-card)',
-                            transition: 'all 0.2s ease'
-                          }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '18px' }}>{p.icon}</span>
-                              <span style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text-primary)' }}>{p.platform}</span>
-                            </div>
-                            <span style={{
-                              fontSize: '10px',
-                              fontWeight: 800,
-                              padding: '2px 8px',
-                              borderRadius: '10px',
-                              background: isConn ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                              color: isConn ? '#10b981' : 'var(--text-secondary)'
-                            }}>
-                              {isConn ? '● CONNECTED' : 'NOT CONNECTED'}
-                            </span>
-                          </div>
-
-                          {isConn ? (
-                            <>
-                              <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                                {p.followers ? p.followers.toLocaleString() : '0'} <span style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 500 }}>followers</span>
-                              </div>
-                              <div style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Views: {(p.views || 0).toLocaleString()}</span>
-                                <span style={{ color: p.color, fontWeight: 700 }}>Open ➔</span>
-                              </div>
-                            </>
-                          ) : (
-                            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                              <span>No live feed</span>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setActiveTab('settings'); }}
-                                style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', padding: 0 }}
-                              >
-                                Connect ➔
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
+              ) : (
+                <div className="dash-ig-banner" style={{ opacity: 0.7 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
+                    <span>Connect your Instagram account to view live analytics</span>
+                  </div>
+                  <button 
+                    onClick={() => setActiveTab('settings')}
+                    className="ds-btn-primary ds-btn-sm"
+                  >
+                    Connect
+                  </button>
+                </div>
+              )}
 
-                <section>
-                  <KPICards data={kpiData} />
-                </section>
-                <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                  <ViewsChart data={viewsData.length ? viewsData : undefined} />
-                  <FollowersChart data={followersData.length ? followersData : undefined} />
-                </section>
-                <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                  <AIInsights />
-                  <CompareContent />
-                </section>
-                <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                  <TrendingContent />
-                  <TopContentTable />
-                </section>
+              {/* Platform Status Grid */}
+              <div>
+                <div className="dash-section-header" style={{ marginBottom: 'var(--space-3)' }}>
+                  <h3 className="dash-section-title">Connected Platforms</h3>
+                  <span className="dash-section-subtitle">Real-time telemetry</span>
+                </div>
+
+                <div className="dash-platform-grid stagger-children">
+                  {(Array.isArray(platformPerformance) ? platformPerformance : []).map((p) => {
+                    const isConn = p.status === 'connected';
+                    return (
+                      <div
+                        key={p.platform}
+                        className={`dash-platform-card ${!isConn ? 'disconnected' : ''}`}
+                        onClick={() => isConn && setActiveTab(`platform_${p.platform.toLowerCase()}`)}
+                        style={isConn ? { borderColor: `${p.color}33` } : undefined}
+                      >
+                        <div className="dash-platform-top">
+                          <div className="dash-platform-name">
+                            <span className="dash-platform-dot" style={{ background: isConn ? p.color : 'var(--text-muted)' }} />
+                            {p.platform}
+                          </div>
+                          <span className={`ds-badge ${isConn ? 'ds-badge-success' : 'ds-badge-default'}`}>
+                            {isConn ? 'LIVE' : 'OFFLINE'}
+                          </span>
+                        </div>
+
+                        {isConn ? (
+                          <>
+                            <div className="dash-platform-followers">
+                              {p.followers ? p.followers.toLocaleString() : '0'}
+                              <span>followers</span>
+                            </div>
+                            <div className="dash-platform-meta">
+                              <span>{(p.views || 0).toLocaleString()} views</span>
+                              <span className="dash-platform-cta" style={{ color: p.color }}>View →</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="dash-platform-meta" style={{ marginTop: 'var(--space-1)' }}>
+                            <span>Not connected</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setActiveTab('settings'); }}
+                              className="ds-btn-ghost ds-btn-sm"
+                              style={{ padding: 0, fontSize: 'var(--text-xs)' }}
+                            >
+                              Connect →
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </>
+
+              {/* KPI Metrics */}
+              <section>
+                <KPICards data={kpiData} />
+              </section>
+
+              {/* Charts */}
+              <section className="dash-charts-grid">
+                <ViewsChart data={viewsData.length ? viewsData : undefined} />
+                <FollowersChart data={followersData.length ? followersData : undefined} />
+              </section>
+              <section className="dash-charts-grid">
+                <AIInsights />
+                <CompareContent />
+              </section>
+              <section className="dash-charts-grid">
+                <TrendingContent />
+                <TopContentTable />
+              </section>
+            </div>
           )}
         </PageTransition>
       </DashboardLayout>
@@ -387,3 +519,4 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
     </div>
   );
 }
+

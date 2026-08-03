@@ -1,151 +1,146 @@
 import React from 'react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 export default function MetricCard({ title, value, change, changeStatus, icon, sparkData }) {
-  // Generate safe fallback sparkline points if none provided
   const points = sparkData || [
     { v: 30 }, { v: 45 }, { v: 35 }, { v: 60 }, { v: 50 }, { v: 75 }, { v: 90 }
   ];
 
   const isPositive = changeStatus !== 'negative';
-  const strokeColor = isPositive ? '#10b981' : '#ef4444';
-  const fillColor = isPositive ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+  const gradientId = `spark-${(title || '').replace(/\s+/g, '-')}`;
 
   return (
-    <div className="metric-card">
+    <div className="mc-card">
       <style>{`
-        .metric-card {
-          background: rgba(30, 41, 59, 0.35);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.07);
-          border-radius: 24px;
-          padding: 1.5rem;
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+        .mc-card {
+          background: var(--bg-card);
+          backdrop-filter: var(--backdrop-blur-sm);
+          -webkit-backdrop-filter: var(--backdrop-blur-sm);
+          border: 1px solid var(--border-primary);
+          border-radius: var(--card-radius);
+          padding: var(--space-5);
+          box-shadow: var(--shadow-card);
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          gap: var(--space-3);
+          transition: all var(--duration-normal) var(--ease-default);
           position: relative;
           overflow: hidden;
-          cursor: pointer;
         }
 
-        .metric-card::before {
+        .mc-card::after {
           content: '';
           position: absolute;
           top: 0;
           left: 0;
           right: 0;
           height: 1px;
-          background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 100%);
-          pointer-events: none;
+          background: linear-gradient(90deg, 
+            transparent 0%, 
+            var(--border-secondary) 30%, 
+            var(--border-secondary) 70%, 
+            transparent 100%
+          );
+          opacity: 0.5;
         }
 
-        .metric-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(59, 130, 246, 0.35);
-          box-shadow: 0 12px 40px rgba(59, 130, 246, 0.12);
-          background: rgba(30, 41, 59, 0.45);
+        .mc-card:hover {
+          border-color: var(--border-hover);
+          box-shadow: var(--shadow-md);
+          transform: translateY(-1px);
         }
 
-        .card-top-row {
+        .mc-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
         }
 
-        .card-title {
-          font-size: 0.78rem;
-          font-weight: 600;
-          color: var(--text-secondary, #94a3b8);
+        .mc-label {
+          font-size: var(--text-xs);
+          font-weight: var(--weight-medium);
+          color: var(--text-muted);
           text-transform: uppercase;
-          letter-spacing: 0.06em;
+          letter-spacing: var(--tracking-wider);
         }
 
-        .card-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          background: rgba(255, 255, 255, 0.04);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 1.1rem;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .card-val-row {
+        .mc-value-row {
           display: flex;
           align-items: baseline;
           justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 8px;
+          gap: var(--space-3);
         }
 
-        .card-val {
-          font-size: 1.85rem;
-          font-weight: 800;
-          color: var(--text-primary, #f8fafc);
-          letter-spacing: -0.02em;
+        .mc-value {
+          font-size: var(--text-2xl);
+          font-weight: var(--weight-bold);
+          color: var(--text-primary);
+          letter-spacing: var(--tracking-tighter);
+          font-variant-numeric: tabular-nums;
+          line-height: 1;
         }
 
-        .card-badge {
-          font-size: 0.78rem;
-          font-weight: 700;
-          display: flex;
+        .mc-change {
+          font-size: var(--text-xs);
+          font-weight: var(--weight-semibold);
+          display: inline-flex;
           align-items: center;
-          gap: 4px;
-          padding: 4px 8px;
-          border-radius: 8px;
+          gap: var(--space-1);
+          padding: var(--space-0_5) var(--space-2);
+          border-radius: var(--radius-full);
+          white-space: nowrap;
         }
 
-        .card-badge.up {
-          background: rgba(16, 185, 129, 0.12);
-          color: #34d399;
+        .mc-change.positive {
+          background: var(--success-subtle);
+          color: var(--success);
         }
 
-        .card-badge.down {
-          background: rgba(239, 68, 68, 0.12);
-          color: #f87171;
+        .mc-change.negative {
+          background: var(--error-subtle);
+          color: var(--error);
         }
 
-        .sparkline-box {
-          height: 36px;
+        .mc-spark {
+          height: 32px;
           width: 100%;
-          margin-top: 0.25rem;
+          margin-top: var(--space-1);
         }
       `}</style>
 
-      <div className="card-top-row">
-        <span className="card-title">{title}</span>
-        <span className="card-icon">{icon || '📊'}</span>
+      <div className="mc-header">
+        <span className="mc-label">{title}</span>
       </div>
 
-      <div className="card-val-row">
-        <span className="card-val">{value}</span>
-        <span className={`card-badge ${isPositive ? 'up' : 'down'}`}>
-          {isPositive ? '▲' : '▼'} {Math.abs(change)}%
-        </span>
+      <div className="mc-value-row">
+        <span className="mc-value">{value}</span>
+        {change !== undefined && change !== null && (
+          <span className={`mc-change ${isPositive ? 'positive' : 'negative'}`}>
+            {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            {Math.abs(change)}%
+          </span>
+        )}
       </div>
 
-      <div className="sparkline-box">
+      <div className="mc-spark">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={points}>
             <defs>
-              <linearGradient id={`grad-${title}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={strokeColor} stopOpacity={0.15}/>
-                <stop offset="95%" stopColor={strokeColor} stopOpacity={0}/>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={isPositive ? 'var(--success)' : 'var(--error)'} stopOpacity={0.15}/>
+                <stop offset="95%" stopColor={isPositive ? 'var(--success)' : 'var(--error)'} stopOpacity={0}/>
               </linearGradient>
             </defs>
             <Area
               type="monotone"
               dataKey="v"
-              stroke={strokeColor}
+              stroke={isPositive ? 'var(--success)' : 'var(--error)'}
               strokeWidth={1.5}
               fillOpacity={1}
-              fill={`url(#grad-${title})`}
+              fill={`url(#${gradientId})`}
               dot={false}
+              animationDuration={800}
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -17,60 +17,60 @@ export default function DashboardLayout({
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="app-layout-wrapper">
+    <div className="ds-layout">
       <style>{`
-        .app-layout-wrapper {
+        .ds-layout {
           display: flex;
           min-height: 100vh;
           width: 100%;
-          background: #090d16;
-          color: #f8fafc;
-          font-family: 'Inter', sans-serif;
+          background: var(--bg-primary);
+          color: var(--text-primary);
+          font-family: var(--font-sans);
           position: relative;
         }
 
-        .main-layout-container {
+        .ds-main {
           flex: 1;
           display: flex;
           flex-direction: column;
-          margin-left: 280px;
-          min-width: 0; /* Prevents flex children from stretching */
-          transition: margin-left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+          margin-left: var(--sidebar-width);
+          min-width: 0;
+          transition: margin-left var(--duration-slow) var(--ease-spring);
         }
 
-        .main-layout-container.sidebar-collapsed {
-          margin-left: 80px;
+        .ds-main.collapsed {
+          margin-left: var(--sidebar-collapsed-width);
         }
 
-        .dashboard-content-body {
+        .ds-content {
           flex: 1;
-          padding: 2rem;
+          padding: var(--space-6) var(--space-8);
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
-          gap: 2.5rem;
+          gap: var(--space-6);
           width: 100%;
-          max-width: 1600px;
+          max-width: 1440px;
           margin: 0 auto;
+          animation: fadeIn var(--duration-normal) var(--ease-default);
         }
 
         @media (max-width: 1024px) {
-          .main-layout-container {
-            margin-left: 80px;
+          .ds-main {
+            margin-left: var(--sidebar-collapsed-width);
           }
         }
 
         @media (max-width: 768px) {
-          .main-layout-container {
+          .ds-main {
             margin-left: 0 !important;
           }
-          .dashboard-content-body {
-            padding: 1.25rem;
+          .ds-content {
+            padding: var(--space-4);
           }
         }
       `}</style>
 
-      {/* FIXED SIDEBAR */}
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -79,10 +79,7 @@ export default function DashboardLayout({
         userRole={userRole}
       />
 
-      {/* DYNAMIC SCROLL CONTAINER */}
-      <div className={`main-layout-container ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
-        
-        {/* STICKY TOP NAVBAR */}
+      <div className={`ds-main ${isCollapsed ? 'collapsed' : ''}`}>
         <TopNavbar 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -95,8 +92,7 @@ export default function DashboardLayout({
           onThemeChange={onThemeChange}
         />
 
-        {/* DASHBOARD PAGE METRICS BODY */}
-        <main className="dashboard-content-body">
+        <main className="ds-content">
           {children}
         </main>
       </div>

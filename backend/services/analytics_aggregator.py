@@ -62,27 +62,63 @@ class AnalyticsAggregator:
         }
 
         # 2. Instagram Account Integration
-        if ig_account:
-            ig_subs = ig_account.followers_count or 0
-            ig_views = ig_subs * 6
-            ig_reach = ig_subs * 4
-            connected_map["Instagram"] = {
-                "platform": "Instagram",
-                "icon": "📸",
-                "account_name": f"@{ig_account.username}",
-                "followers": ig_subs,
-                "views": ig_views,
-                "reach": ig_reach,
-                "impressions": ig_views,
-                "likes": int(ig_subs * 0.08),
-                "comments": int(ig_subs * 0.005),
-                "shares": int(ig_subs * 0.002),
-                "watch_time_hours": int(ig_views * 0.02),
-                "content_count": ig_account.media_count or 12,
-                "engagement": 5.8,
-                "color": "#E1306C",
-                "status": "connected"
-            }
+        ig_handle = ""
+        for acc in accounts:
+            if acc.platform == "Instagram" and acc.account_name:
+                ig_handle = acc.account_name
+                break
+
+        if ig_handle or ig_account:
+            target_handle = ig_handle or ig_account.username
+            clean_handle = target_handle.replace("@", "").lower().strip()
+            
+            import requests
+            try:
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "x-ig-app-id": "936619743392459"
+                }
+                # Short timeout so main dashboard loads quickly
+                res = requests.get(f"https://i.instagram.com/api/v1/users/web_profile_info/?username={clean_handle}", headers=headers, timeout=4)
+                if res.status_code == 200:
+                    data = res.json()
+                    user_data = data.get("data", {}).get("user", {})
+                    if user_data:
+                        ig_subs = user_data.get("edge_followed_by", {}).get("count", 0)
+                        ig_media = user_data.get("edge_owner_to_timeline_media", {}).get("count", 0)
+                        
+                        # Sum up likes and comments from recent posts
+                        recent_edges = user_data.get("edge_owner_to_timeline_media", {}).get("edges", [])
+                        total_ig_likes = 0
+                        total_ig_comments = 0
+                        total_ig_views = 0
+                        
+                        for edge in recent_edges:
+                            node = edge.get("node", {})
+                            total_ig_likes += node.get("edge_liked_by", {}).get("count", 0)
+                            total_ig_comments += node.get("edge_media_to_comment", {}).get("count", 0)
+                            is_video = node.get("is_video", False)
+                            total_ig_views += node.get("video_view_count", 0) if is_video else 0
+
+                        connected_map["Instagram"] = {
+                            "platform": "Instagram",
+                            "icon": "📸",
+                            "account_name": f"@{clean_handle}",
+                            "followers": ig_subs,
+                            "views": total_ig_views, # Real views from recent reels
+                            "reach": 0, # Strict
+                            "impressions": 0, # Strict
+                            "likes": total_ig_likes,
+                            "comments": total_ig_comments,
+                            "shares": 0,
+                            "watch_time_hours": 0,
+                            "content_count": ig_media,
+                            "engagement": 0.0,
+                            "color": "#E1306C",
+                            "status": "connected"
+                        }
+            except Exception as e:
+                print("Instagram real-time fetch for aggregator failed:", e)
 
         # 3. Other Social Accounts (Twitter, LinkedIn, Twitch)
         for acc in accounts:

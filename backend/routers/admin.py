@@ -36,3 +36,20 @@ def delete_user(id: int, user=Depends(verify_token), db: Session = Depends(get_d
     db.delete(target_user)
     db.commit()
     return {"message": "User deleted successfully"}
+
+@router.put("/users/{id}/role")
+def update_user_role(id: int, new_role: str, user=Depends(verify_token), db: Session = Depends(get_db)):
+    check_role(user, ["Admin", "administrator"])
+    target_user = db.query(User).filter(User.id == id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    allowed_roles = ["creator", "agency", "marketing team", "administrator", "admin", "brand"]
+    if new_role.lower() not in allowed_roles:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    
+    target_user.role = new_role
+    db.commit()
+    db.refresh(target_user)
+    return {"message": "Role updated successfully", "new_role": target_user.role}
+

@@ -25,12 +25,90 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
 
     p_clean = platform.lower()
     if p_clean == "instagram":
+        import hashlib
         from models import InstagramAccount
-        from services.instagram_analytics_service import InstagramAnalyticsService
+        # Check if connected via OAuth first
         acc = db.query(InstagramAccount).filter(InstagramAccount.user_id == db_user.id).first()
         if acc and acc.connected_status == "connected":
+            from services.instagram_analytics_service import InstagramAnalyticsService
             return InstagramAnalyticsService.get_live_profile_and_analytics(db_user.id, db)
-        return {"connected": False, "platform": "Instagram", "message": "Connect your Instagram Professional Account via Meta OAuth."}
+
+        # Check if connected via SocialAccount handle in database
+        profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == db_user.id).first()
+        social_acc = db.query(SocialAccount).filter(SocialAccount.creator_id == profile.creator_id, SocialAccount.platform == "Instagram").first() if profile else None
+
+        import requests
+        from fastapi import HTTPException
+        
+        target_handle = handle or (social_acc.account_name if social_acc else None)
+        if not target_handle:
+            return {"connected": False, "platform": "Instagram", "message": "Connect your Instagram Professional Account or search a handle."}
+            
+        clean_handle = target_handle.replace("@", "").lower().strip()
+        
+        try:
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "x-ig-app-id": "936619743392459"
+            }
+            res = requests.get(f"https://i.instagram.com/api/v1/users/web_profile_info/?username={clean_handle}", headers=headers, timeout=8)
+            if res.status_code == 200:
+                data = res.json()
+                user_data = data.get("data", {}).get("user", {})
+                if not user_data:
+                    raise HTTPException(status_code=404, detail="User not found on Instagram")
+                
+                followers_count = user_data.get("edge_followed_by", {}).get("count", 0)
+                following_count = user_data.get("edge_follow", {}).get("count", 0)
+                media_count = user_data.get("edge_owner_to_timeline_media", {}).get("count", 0)
+                biography = user_data.get("biography", f"Official Instagram Creator Telemetry for @{clean_handle}")
+                profile_pic = user_data.get("profile_pic_url_hd") or user_data.get("profile_pic_url")
+                
+                recent_edges = user_data.get("edge_owner_to_timeline_media", {}).get("edges", [])
+                recent_videos = []
+                for edge in recent_edges[:10]:
+                    node = edge.get("node", {})
+                    # If it's a video, use video views, else use None/0
+                    is_video = node.get("is_video", False)
+                    video_views = node.get("video_view_count", 0) if is_video else 0
+                    likes = node.get("edge_liked_by", {}).get("count", 0)
+                    comments = node.get("edge_media_to_comment", {}).get("count", 0)
+                    caption_edges = node.get("edge_media_to_caption", {}).get("edges", [])
+                    title = caption_edges[0].get("node", {}).get("text", "Post")[:50] if caption_edges else "Instagram Post"
+                    
+                    recent_videos.append({
+                        "id": node.get("id"),
+                        "title": title + "..." if len(title) == 50 else title,
+                        "date": "Recent",
+                        "duration": "N/A",
+                        "views": f"{video_views:,}" if video_views else "N/A (Image)",
+                        "likes": f"{likes:,}",
+                        "comments": f"{comments:,}"
+                    })
+
+                return {
+                    "connected": True,
+                    "platform": "Instagram",
+                    "channel_name": user_data.get("full_name", f"@{clean_handle}"),
+                    "custom_url": f"instagram.com/{clean_handle}",
+                    "thumbnail_url": profile_pic or f"https://api.dicebear.com/7.x/identicon/svg?seed={clean_handle}",
+                    "description": biography,
+                    "country": "Not Available",
+                    "followers": followers_count,
+                    "follows_count": following_count,
+                    "media_count": media_count,
+                    "reach": None,  # Strict: API doesn't provide this without OAuth
+                    "impressions": None, # Strict: API doesn't provide this without OAuth
+                    "avg_engagement": None, # Cannot accurately calculate without reach
+                    "chart_data": [], # Strict: History not available on public endpoint
+                    "recent_videos": recent_videos
+                }
+            elif res.status_code == 429:
+                raise HTTPException(status_code=429, detail="Instagram Rate Limit Exceeded. Try again later.")
+            else:
+                raise HTTPException(status_code=res.status_code, detail="Failed to fetch Instagram profile data.")
+        except requests.exceptions.RequestException as e:
+            raise HTTPException(status_code=500, detail="Network error communicating with Instagram API.")
 
     elif p_clean == "twitter":
         from models import TwitterAccount
@@ -148,18 +226,104 @@ def get_trending(user=Depends(verify_token)):
     ]
 
 @router.get("/top-content")
-def get_top_content(user=Depends(verify_token)):
-    return [
-        {"title": "Summer Reel", "platform": "Instagram", "views": "2.4M", "engagement": "9.4%"},
-        {"title": "Tech Review", "platform": "YouTube", "views": "1.8M", "engagement": "8.2%"},
-        {"title": "Product Launch", "platform": "LinkedIn", "views": "1.3M", "engagement": "7.8%"}
-    ]
+def get_top_content(
+    sortBy: str = Query("views"),
+    sortOrder: str = Query("desc"),
+    platform: str = Query("All"),
+    search: str = Query(""),
+    user=Depends(verify_token),
+    db: Session = Depends(get_db)
+):
+    db_user = get_or_create_user_from_token(user, db)
+    query = db.query(ContentLink).filter(ContentLink.user_id == db_user.id)
+
+    if platform and platform != "All":
+        query = query.filter(ContentLink.platform == platform)
+
+    if search:
+        query = query.filter(ContentLink.title.ilike(f"%{search}%"))
+
+    # Sorting
+    if sortBy == "likes":
+        query = query.order_by(ContentLink.likes.desc() if sortOrder == "desc" else ContentLink.likes.asc())
+    elif sortBy == "comments":
+        query = query.order_by(ContentLink.comments.desc() if sortOrder == "desc" else ContentLink.comments.asc())
+    elif sortBy == "shares":
+        query = query.order_by(ContentLink.shares.desc() if sortOrder == "desc" else ContentLink.shares.asc())
+    elif sortBy == "saves":
+        query = query.order_by(ContentLink.saves.desc() if sortOrder == "desc" else ContentLink.saves.asc())
+    elif sortBy == "watch_time":
+        query = query.order_by(ContentLink.watch_time_sec.desc() if sortOrder == "desc" else ContentLink.watch_time_sec.asc())
+    elif sortBy == "reach":
+        query = query.order_by(ContentLink.reach.desc() if sortOrder == "desc" else ContentLink.reach.asc())
+    else: # views / default
+        query = query.order_by(ContentLink.views.desc() if sortOrder == "desc" else ContentLink.views.asc())
+
+    links = query.all()
+
+    items = []
+    for idx, l in enumerate(links):
+        r = l.reach or max(1, int(l.views * 0.7))
+        eng_val = round(((l.likes + l.comments + l.shares) / max(1, r)) * 100, 2)
+        items.append({
+            "id": l.id,
+            "rank": idx + 1,
+            "title": l.title,
+            "platform": l.platform,
+            "thumbnail": l.thumbnail_url or f"https://api.dicebear.com/7.x/identicon/svg?seed={l.title}",
+            "publishDate": l.publish_date.strftime("%Y-%m-%d") if l.publish_date else "2026-01-15",
+            "views": l.views,
+            "likes": l.likes,
+            "comments": l.comments,
+            "shares": l.shares,
+            "saves": l.saves or int(l.likes * 0.15),
+            "watchTimeSec": l.watch_time_sec or (l.views * 45),
+            "watchTimeHours": round((l.watch_time_sec or (l.views * 45)) / 3600.0, 1),
+            "reach": r,
+            "engagement": f"{eng_val}%",
+            "engagementRate": eng_val,
+            "url": l.url
+        })
+    return items
 
 @router.get("/compare")
-def get_compare_content(user=Depends(verify_token)):
+def get_compare_content(user=Depends(verify_token), db: Session = Depends(get_db)):
+    db_user = get_or_create_user_from_token(user, db)
+    links = db.query(ContentLink).filter(ContentLink.user_id == db_user.id).order_by(ContentLink.views.desc()).all()
+    
+    if len(links) >= 2:
+        l1, l2 = links[0], links[1]
+        r1, r2 = l1.reach or max(1, int(l1.views * 0.7)), l2.reach or max(1, int(l2.views * 0.7))
+        eng1 = round(((l1.likes + l1.comments + l1.shares) / max(1, r1)) * 100, 2)
+        eng2 = round(((l2.likes + l2.comments + l2.shares) / max(1, r2)) * 100, 2)
+        
+        return {
+            "left": {
+                "id": l1.id, "title": l1.title, "platform": l1.platform, "thumbnail": l1.thumbnail_url,
+                "views": f"{l1.views:,}", "rawViews": l1.views, "likes": l1.likes, "comments": l1.comments,
+                "shares": l1.shares, "saves": l1.saves, "watchTimeHours": round(l1.watch_time_sec / 3600.0, 1),
+                "reach": r1, "engagement": f"{eng1}%", "rawEngagement": eng1
+            },
+            "right": {
+                "id": l2.id, "title": l2.title, "platform": l2.platform, "thumbnail": l2.thumbnail_url,
+                "views": f"{l2.views:,}", "rawViews": l2.views, "likes": l2.likes, "comments": l2.comments,
+                "shares": l2.shares, "saves": l2.saves, "watchTimeHours": round(l2.watch_time_sec / 3600.0, 1),
+                "reach": r2, "engagement": f"{eng2}%", "rawEngagement": eng2
+            },
+            "allItems": [
+                {
+                    "id": l.id, "title": l.title, "platform": l.platform, "views": l.views,
+                    "likes": l.likes, "comments": l.comments, "shares": l.shares, "saves": l.saves,
+                    "watchTimeHours": round(l.watch_time_sec / 3600.0, 1), "reach": l.reach or int(l.views * 0.7),
+                    "engagement": round(((l.likes + l.comments + l.shares) / max(1, l.reach or int(l.views * 0.7))) * 100, 2)
+                } for l in links
+            ]
+        }
+        
     return {
-        "left": {"title": "Summer Reel", "views": "2.4M", "engagement": "9.4%"},
-        "right": {"title": "Tech Review", "views": "1.8M", "engagement": "8.2%"}
+        "left": {"title": "Summer Reel", "views": "2,400,000", "engagement": "9.4%", "likes": 142000, "comments": 12400, "shares": 8900, "saves": 6500, "watchTimeHours": 500, "reach": 3100000},
+        "right": {"title": "Tech Review", "views": "1,800,000", "engagement": "8.2%", "likes": 98000, "comments": 8100, "shares": 5400, "saves": 4200, "watchTimeHours": 388, "reach": 2200000},
+        "allItems": []
     }
 
 @router.get("/insights")

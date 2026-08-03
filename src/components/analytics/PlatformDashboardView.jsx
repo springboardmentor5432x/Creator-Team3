@@ -8,12 +8,12 @@ const platformConfigs = {
     icon: '📸',
     color: '#e1306c',
     metrics: [
-      { id: 'followers', label: 'Followers', icon: Users, format: (val) => val ? val.toLocaleString() : 'N/A' },
-      { id: 'follows_count', label: 'Following', icon: Users, format: (val) => val ? val.toLocaleString() : 'N/A' },
-      { id: 'media_count', label: 'Media Posts', icon: Video, format: (val) => val ? val.toLocaleString() : 'N/A' },
-      { id: 'reach', label: 'Total Reach (OAuth Required)', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
-      { id: 'impressions', label: 'Impressions (OAuth Required)', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
-      { id: 'avg_engagement', label: 'Engagement Rate', icon: Heart, format: (val, isConnected) => isConnected ? `${val}%` : 'Requires Account Connection' }
+      { id: 'followers', label: 'Followers', icon: Users, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
+      { id: 'follows_count', label: 'Following', icon: Users, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
+      { id: 'media_count', label: 'Media Posts', icon: Video, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
+      { id: 'reach', label: 'Total Reach', icon: Eye, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
+      { id: 'impressions', label: 'Total Impressions', icon: Eye, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
+      { id: 'avg_engagement', label: 'Engagement Rate', icon: Heart, format: (val) => val != null ? `${val}%` : 'Not Available' }
     ]
   },
   youtube: {
@@ -69,6 +69,7 @@ const platformConfigs = {
 export default function PlatformDashboardView({ platformKey, token, setActiveTab }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchHandle, setSearchHandle] = useState('');
   const [lookupData, setLookupData] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
@@ -80,18 +81,24 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
     try {
       if (handleQuery) setLookupLoading(true);
       else setLoading(true);
+      setError(null);
 
       const url = `http://127.0.0.1:8000/api/analytics/platform/${key}` + (handleQuery ? `?handle=${encodeURIComponent(handleQuery)}` : '');
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.ok) {
-        const json = await res.json();
-        if (handleQuery) setLookupData(json);
-        else setData(json);
+      const json = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(json.detail || json.message || 'Failed to fetch platform data');
       }
+      
+      if (handleQuery) setLookupData(json);
+      else setData(json);
+      
     } catch (err) {
       console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
       setLookupLoading(false);
@@ -111,9 +118,30 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
 
   if (loading) {
     return (
-      <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-        <RefreshCw className="animate-spin" size={32} style={{ margin: '0 auto 16px', color: config.color }} />
-        <h3>Fetching {config.name} Telemetry & Channel Feed...</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
+        <div className="theme-card" style={{ height: '120px', background: 'rgba(255,255,255,0.02)', animation: 'pulse 1.5s infinite' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+          {[1,2,3,4,5,6].map(i => (
+             <div key={i} className="theme-card" style={{ height: '100px', background: 'rgba(255,255,255,0.02)', animation: 'pulse 1.5s infinite' }} />
+          ))}
+        </div>
+        <div className="theme-card" style={{ height: '350px', background: 'rgba(255,255,255,0.02)', animation: 'pulse 1.5s infinite' }} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="theme-card" style={{ padding: '40px', textAlign: 'center', border: '1px solid #ef4444' }}>
+        <ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 16px' }} />
+        <h3 style={{ color: '#ef4444', fontSize: '20px', margin: '0 0 12px' }}>Unable to retrieve analytics</h3>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Reason: {error}</p>
+        <button 
+          onClick={() => fetchPlatformData()}
+          style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
+        >
+          Retry Fetch
+        </button>
       </div>
     );
   }
@@ -239,7 +267,7 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
       </div>
 
       {/* Analytics Chart Section */}
-      {activeData?.chart_data && (
+      {activeData?.chart_data !== undefined && (
         <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -249,37 +277,43 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
           </div>
 
           <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activeData.chart_data}>
-                <defs>
-                  <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={config.color} stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor={config.color} stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, rgba(255,255,255,0.08))" />
-                <XAxis dataKey="month" stroke="var(--text-secondary)" fontSize={12} />
-                <YAxis stroke="var(--text-secondary)" fontSize={12} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', borderRadius: '12px' }}
-                  formatter={(val, name) => [name === 'views' ? val.toLocaleString() : `$${val.toLocaleString()}`, name === 'views' ? 'Channel Views' : 'Estimated Revenue']}
-                />
-                <Area type="monotone" dataKey="views" stroke={config.color} strokeWidth={3} fillOpacity={1} fill="url(#colorViews)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {activeData.chart_data.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={activeData.chart_data}>
+                  <defs>
+                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={config.color} stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor={config.color} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, rgba(255,255,255,0.08))" />
+                  <XAxis dataKey="month" stroke="var(--text-secondary)" fontSize={12} />
+                  <YAxis stroke="var(--text-secondary)" fontSize={12} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', borderRadius: '12px' }}
+                    formatter={(val, name) => [name === 'views' ? val.toLocaleString() : `$${val.toLocaleString()}`, name === 'views' ? 'Channel Views' : 'Estimated Revenue']}
+                  />
+                  <Area type="monotone" dataKey="views" stroke={config.color} strokeWidth={3} fillOpacity={1} fill="url(#colorViews)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+                <span>No historical data available for this account.</span>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Top Videos Section */}
-      {activeData?.recent_videos && (
+      {activeData?.recent_videos !== undefined && (
         <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
             🎬 Top Performing Channel Uploads
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {activeData.recent_videos.map((vid) => (
+            {activeData.recent_videos.length > 0 ? activeData.recent_videos.map((vid) => (
               <div
                 key={vid.id}
                 style={{
@@ -310,7 +344,11 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
                   <div><strong style={{ color: 'var(--text-primary)' }}>{vid.comments}</strong> <span style={{ color: 'var(--text-secondary)' }}>comments</span></div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                No recent media posts available.
+              </div>
+            )}
           </div>
         </div>
       )}

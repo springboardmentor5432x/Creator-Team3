@@ -1,172 +1,205 @@
 import React, { useEffect, useState } from "react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from "recharts";
-import { Scale, CheckSquare, BarChart2, Table } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
+import { RefreshCw, BarChart2, Table, LayoutGrid, CheckCircle2 } from "lucide-react";
 
-export default function CompareContent() {
-  const [allItems, setAllItems] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
-  const [viewMode, setViewMode] = useState("chart"); // 'chart', 'table', 'cards'
+export default function CompareContent({ token: propToken }) {
+  const [compareData, setCompareData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState([1, 2]);
+  const [viewMode, setViewMode] = useState("chart"); // 'chart' | 'table' | 'cards'
+
+  const token = propToken || localStorage.getItem("token");
+
+  const fetchCompare = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("http://127.0.0.1:8000/api/analytics/compare", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCompareData(data);
+      }
+    } catch (error) {
+      console.error('Error fetching compare data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCompare = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://127.0.0.1:8000/api/analytics/compare", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          const items = data.allItems || [];
-          setAllItems(items);
-          if (items.length >= 2) {
-            setSelectedIds([items[0].id, items[1].id]);
-          } else if (items.length === 1) {
-            setSelectedIds([items[0].id]);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch content comparison data:", error);
-      }
-    };
     fetchCompare();
   }, []);
 
-  const handleToggleSelect = (id) => {
+  const allItems = compareData?.allItems || (compareData?.left && compareData?.right ? [compareData.left, compareData.right] : []);
+  const selectedItems = allItems.filter(item => selectedIds.includes(item.id));
+
+  const toggleItemSelection = (id) => {
     if (selectedIds.includes(id)) {
       if (selectedIds.length > 1) {
         setSelectedIds(selectedIds.filter(i => i !== id));
       }
     } else {
-      setSelectedIds([...selectedIds, id]);
+      if (selectedIds.length < 4) {
+        setSelectedIds([...selectedIds, id]);
+      }
     }
   };
 
-  const selectedItems = allItems.filter(item => selectedIds.includes(item.id));
-
-  // Chart data formatting
-  const chartMetrics = [
-    { metric: "Views (k)", key: "views", scale: 0.001 },
-    { metric: "Likes", key: "likes", scale: 1 },
-    { metric: "Comments", key: "comments", scale: 1 },
-    { metric: "Shares", key: "shares", scale: 1 },
-    { metric: "Saves", key: "saves", scale: 1 },
-    { metric: "Watch Time (hrs)", key: "watchTimeHours", scale: 1 },
-    { metric: "Reach (k)", key: "reach", scale: 0.001 }
+  // Format chart data for Recharts grouped bar chart
+  const chartData = [
+    { metric: "Views", ...Object.fromEntries(selectedItems.map(i => [i.title, i.views || 0])) },
+    { metric: "Likes", ...Object.fromEntries(selectedItems.map(i => [i.title, i.likes || 0])) },
+    { metric: "Comments", ...Object.fromEntries(selectedItems.map(i => [i.title, i.comments || 0])) },
+    { metric: "Shares", ...Object.fromEntries(selectedItems.map(i => [i.title, i.shares || 0])) },
+    { metric: "Saves", ...Object.fromEntries(selectedItems.map(i => [i.title, i.saves || 0])) }
   ];
 
-  const chartData = chartMetrics.map(m => {
-    const row = { metric: m.metric };
-    selectedItems.forEach((item, idx) => {
-      row[`Item ${idx + 1}: ${item.title.substring(0, 15)}...`] = Math.round((item[m.key] || 0) * m.scale);
-    });
-    return row;
-  });
+  const BAR_COLORS = ['#3b82f6', '#10b981', '#ec4899', '#8b5cf6'];
 
-  const colors = ["#3b82f6", "#10b981", "#ec4899", "#f59e0b", "#8b5cf6"];
+  if (loading) {
+    return (
+      <div className="theme-card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <RefreshCw className="animate-spin" size={28} style={{ margin: '0 auto 12px' }} />
+        <div>Loading multi-content comparison matrix...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="theme-card" style={{ padding: "22px", borderRadius: "16px", background: "var(--bg-card)", border: "1px solid var(--border-primary)" }}>
-      {/* Title & Controls */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "20px" }}>
+    <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      
+      {/* Header & Controls */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-            <Scale size={18} color="var(--accent-primary)" />
-            Multi-Content Performance Comparison
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>
+            ⚖️ Multi-Content Performance Comparison
           </h3>
-          <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--text-muted)" }}>
-            Compare views, likes, comments, shares, saves, watch time, reach, and engagement across posts
+          <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
+            Compare up to 4 posts side-by-side across engagement, views, watch time, reach, and virality metrics
           </p>
         </div>
 
-        {/* View Mode Switcher */}
-        <div style={{ display: "flex", background: "var(--bg-input)", padding: "4px", borderRadius: "8px", border: "1px solid var(--border-primary)", gap: "4px" }}>
+        {/* View Switcher Toggle */}
+        <div style={{ display: 'flex', gap: '6px', background: 'var(--bg-tertiary)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border-primary)' }}>
           <button
-            onClick={() => setViewMode("chart")}
+            onClick={() => setViewMode('chart')}
             style={{
-              padding: "5px 12px", borderRadius: "6px", border: "none",
-              background: viewMode === "chart" ? "var(--accent-primary)" : "transparent",
-              color: viewMode === "chart" ? "#fff" : "var(--text-secondary)", fontSize: "12px", fontWeight: 600, cursor: "pointer"
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: viewMode === 'chart' ? 'var(--badge-bg)' : 'transparent',
+              color: viewMode === 'chart' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              border: viewMode === 'chart' ? '1px solid var(--border-hover)' : '1px solid transparent',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
             }}
           >
-            Chart
+            <BarChart2 size={14} /> Grouped Chart
           </button>
+
           <button
-            onClick={() => setViewMode("table")}
+            onClick={() => setViewMode('table')}
             style={{
-              padding: "5px 12px", borderRadius: "6px", border: "none",
-              background: viewMode === "table" ? "var(--accent-primary)" : "transparent",
-              color: viewMode === "table" ? "#fff" : "var(--text-secondary)", fontSize: "12px", fontWeight: 600, cursor: "pointer"
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: viewMode === 'table' ? 'var(--badge-bg)' : 'transparent',
+              color: viewMode === 'table' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              border: viewMode === 'table' ? '1px solid var(--border-hover)' : '1px solid transparent',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
             }}
           >
-            Table
+            <Table size={14} /> Matrix Table
           </button>
+
           <button
-            onClick={() => setViewMode("cards")}
+            onClick={() => setViewMode('cards')}
             style={{
-              padding: "5px 12px", borderRadius: "6px", border: "none",
-              background: viewMode === "cards" ? "var(--accent-primary)" : "transparent",
-              color: viewMode === "cards" ? "#fff" : "var(--text-secondary)", fontSize: "12px", fontWeight: 600, cursor: "pointer"
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: viewMode === 'cards' ? 'var(--badge-bg)' : 'transparent',
+              color: viewMode === 'cards' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+              border: viewMode === 'cards' ? '1px solid var(--border-hover)' : '1px solid transparent',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer'
             }}
           >
-            Side-by-Side Cards
+            <LayoutGrid size={14} /> Side-by-Side Cards
           </button>
         </div>
       </div>
 
-      {/* Multi-Select Item Pills */}
-      <div style={{ marginBottom: "20px" }}>
-        <span style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-          Select Content Items to Compare:
-        </span>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          {allItems.map(item => {
-            const isSelected = selectedIds.includes(item.id);
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleToggleSelect(item.id)}
-                style={{
-                  display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "20px",
-                  border: isSelected ? "1px solid var(--accent-primary)" : "1px solid var(--border-primary)",
-                  background: isSelected ? "rgba(59, 130, 246, 0.15)" : "var(--bg-input)",
-                  color: isSelected ? "var(--accent-primary)" : "var(--text-secondary)",
-                  fontSize: "12px", fontWeight: 600, cursor: "pointer"
-                }}
-              >
-                <CheckSquare size={14} color={isSelected ? "var(--accent-primary)" : "var(--text-muted)"} />
-                <span>{item.title}</span>
-              </button>
-            );
-          })}
-        </div>
+      {/* Multi-Item Selection Pills */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>Select Content Items:</span>
+        {allItems.map(item => {
+          const isSelected = selectedIds.includes(item.id);
+          return (
+            <button
+              key={item.id}
+              onClick={() => toggleItemSelection(item.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '20px',
+                background: isSelected ? 'var(--badge-bg)' : 'var(--bg-tertiary)',
+                color: isSelected ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                border: isSelected ? '1px solid var(--accent-primary)' : '1px solid var(--border-primary)',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              {isSelected && <CheckCircle2 size={12} />}
+              <span>{item.title}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Mode 1: Chart Comparison */}
-      {viewMode === "chart" && (
-        <div style={{ width: "100%", height: "300px" }}>
+      {/* CHART VIEW */}
+      {viewMode === 'chart' && (
+        <div style={{ width: '100%', height: 320, marginTop: '10px' }}>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <XAxis dataKey="metric" stroke="var(--text-secondary)" style={{ fontSize: "11px" }} />
-              <YAxis stroke="var(--text-secondary)" style={{ fontSize: "11px" }} />
-              <Tooltip contentStyle={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-primary)", color: "var(--text-primary)", borderRadius: "8px" }} />
-              <Legend wrapperStyle={{ fontSize: "12px" }} />
+            <BarChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-primary)" opacity={0.4} />
+              <XAxis dataKey="metric" stroke="var(--text-muted)" fontSize={12} />
+              <YAxis stroke="var(--text-muted)" fontSize={12} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+              <Tooltip contentStyle={{ background: 'var(--bg-card)', borderColor: 'var(--border-hover)', borderRadius: '12px', color: 'var(--text-primary)' }} />
+              <Legend wrapperStyle={{ fontSize: '12px' }} />
               {selectedItems.map((item, idx) => (
-                <Bar key={item.id} dataKey={`Item ${idx + 1}: ${item.title.substring(0, 15)}...`} fill={colors[idx % colors.length]} radius={[4, 4, 0, 0]} />
+                <Bar key={item.id} dataKey={item.title} fill={BAR_COLORS[idx % BAR_COLORS.length]} radius={[6, 6, 0, 0]} />
               ))}
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Mode 2: Table Matrix Comparison */}
-      {viewMode === "table" && (
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", textAlign: "left" }}>
+      {/* MATRIX TABLE VIEW */}
+      {viewMode === 'table' && (
+        <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid var(--border-primary)' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--border-primary)", color: "var(--text-muted)" }}>
-                <th style={{ padding: "10px" }}>Metric</th>
-                {selectedItems.map((item, idx) => (
-                  <th key={item.id} style={{ padding: "10px", color: colors[idx % colors.length] }}>
+              <tr style={{ background: 'var(--bg-tertiary)', color: 'var(--text-secondary)', borderBottom: '1px solid var(--border-primary)' }}>
+                <th style={{ padding: '12px 14px' }}>Metric</th>
+                {selectedItems.map(item => (
+                  <th key={item.id} style={{ padding: '12px 14px', color: 'var(--accent-primary)', fontWeight: 700 }}>
                     {item.title} ({item.platform})
                   </th>
                 ))}
@@ -174,22 +207,26 @@ export default function CompareContent() {
             </thead>
             <tbody>
               {[
-                { label: "Views", key: "views", fmt: v => v.toLocaleString() },
-                { label: "Likes", key: "likes", fmt: v => v.toLocaleString() },
-                { label: "Comments", key: "comments", fmt: v => v.toLocaleString() },
-                { label: "Shares", key: "shares", fmt: v => v.toLocaleString() },
-                { label: "Saves", key: "saves", fmt: v => v.toLocaleString() },
-                { label: "Watch Time (Hours)", key: "watchTimeHours", fmt: v => `${v}h` },
-                { label: "Reach", key: "reach", fmt: v => v.toLocaleString() },
-                { label: "Engagement Rate", key: "engagement", fmt: v => `${v}%` }
-              ].map(row => (
-                <tr key={row.key} style={{ borderBottom: "1px solid var(--border-primary)" }}>
-                  <td style={{ padding: "10px", fontWeight: 600, color: "var(--text-primary)" }}>{row.label}</td>
-                  {selectedItems.map(item => (
-                    <td key={item.id} style={{ padding: "10px", color: "var(--text-secondary)" }}>
-                      {row.fmt(item[row.key] || 0)}
-                    </td>
-                  ))}
+                { label: 'Views', key: 'views' },
+                { label: 'Likes', key: 'likes' },
+                { label: 'Comments', key: 'comments' },
+                { label: 'Shares', key: 'shares' },
+                { label: 'Saves', key: 'saves' },
+                { label: 'Watch Time (hrs)', key: 'watchTimeHours' },
+                { label: 'Unique Reach', key: 'reach' },
+                { label: 'Engagement Rate', key: 'engagementRate', suffix: '%' }
+              ].map((m, idx) => (
+                <tr key={m.key} style={{ borderBottom: '1px solid var(--border-primary)', background: idx % 2 === 0 ? 'transparent' : 'var(--bg-tertiary)' }}>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-secondary)' }}>{m.label}</td>
+                  {selectedItems.map(item => {
+                    const raw = item[m.key];
+                    const formatted = typeof raw === 'number' ? raw.toLocaleString() : (raw || 'N/A');
+                    return (
+                      <td key={item.id} style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {formatted}{m.suffix || ''}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
@@ -197,28 +234,54 @@ export default function CompareContent() {
         </div>
       )}
 
-      {/* Mode 3: Side-by-Side Cards */}
-      {viewMode === "cards" && (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(220px, 1fr))`, gap: "16px" }}>
+      {/* CARDS VIEW */}
+      {viewMode === 'cards' && (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(selectedItems.length, 3)}, 1fr)`, gap: '16px' }}>
           {selectedItems.map((item, idx) => (
-            <div key={item.id} style={{ padding: "16px", borderRadius: "12px", background: "var(--bg-input)", border: `1px solid ${colors[idx % colors.length]}` }}>
-              <h4 style={{ margin: "0 0 10px", fontSize: "14px", fontWeight: 700, color: colors[idx % colors.length] }}>
-                {item.title}
-              </h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px", color: "var(--text-secondary)" }}>
-                <div>Views: <strong style={{ color: "var(--text-primary)" }}>{(item.views || 0).toLocaleString()}</strong></div>
-                <div>Likes: <strong>{(item.likes || 0).toLocaleString()}</strong></div>
-                <div>Comments: <strong>{(item.comments || 0).toLocaleString()}</strong></div>
-                <div>Shares: <strong>{(item.shares || 0).toLocaleString()}</strong></div>
-                <div>Saves: <strong>{(item.saves || 0).toLocaleString()}</strong></div>
-                <div>Watch Time: <strong>{item.watchTimeHours || 0} hrs</strong></div>
-                <div>Reach: <strong>{(item.reach || 0).toLocaleString()}</strong></div>
-                <div>Engagement: <strong style={{ color: "#10b981" }}>{item.engagement}%</strong></div>
+            <div key={item.id} style={{
+              background: 'var(--bg-tertiary)',
+              border: `1px solid ${BAR_COLORS[idx % BAR_COLORS.length]}44`,
+              borderRadius: '16px',
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <img
+                  src={item.thumbnail || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"}
+                  alt={item.title}
+                  style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }}
+                />
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{item.title}</h4>
+                  <span style={{ fontSize: '11px', color: BAR_COLORS[idx % BAR_COLORS.length], fontWeight: 700 }}>{item.platform}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px', marginTop: '8px' }}>
+                <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Views: </span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{typeof item.views === 'number' ? item.views.toLocaleString() : (item.views || '0')}</strong>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Likes: </span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{typeof item.likes === 'number' ? item.likes.toLocaleString() : (item.likes || '0')}</strong>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Comments: </span>
+                  <strong style={{ color: 'var(--text-primary)' }}>{typeof item.comments === 'number' ? item.comments.toLocaleString() : (item.comments || '0')}</strong>
+                </div>
+                <div style={{ background: 'var(--bg-card)', padding: '8px 10px', borderRadius: '8px' }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>Eng. Rate: </span>
+                  <strong style={{ color: '#10b981' }}>{item.engagementRate ? `${item.engagementRate}%` : (item.engagement || '0.0%')}</strong>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
     </div>
   );
 }

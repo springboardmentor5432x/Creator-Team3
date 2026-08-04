@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Eye, Users, Clock, Video, Heart, MessageSquare, Share2, Award, ExternalLink, RefreshCw, CheckCircle, Search, ShieldAlert, Lock, Play, TrendingUp } from 'lucide-react';
+import { Eye, Users, Clock, Video, Heart, Share2, Award, ExternalLink, RefreshCw, Search, Lock } from 'lucide-react';
+import InstagramRawResponsePanel from './InstagramRawResponsePanel';
 
 const platformConfigs = {
   instagram: {
@@ -8,12 +8,42 @@ const platformConfigs = {
     icon: '📸',
     color: '#e1306c',
     metrics: [
-      { id: 'followers', label: 'Followers', icon: Users, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
-      { id: 'follows_count', label: 'Following', icon: Users, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
-      { id: 'media_count', label: 'Media Posts', icon: Video, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
-      { id: 'reach', label: 'Total Reach', icon: Eye, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
-      { id: 'impressions', label: 'Total Impressions', icon: Eye, format: (val) => val != null ? val.toLocaleString() : 'Not Available' },
-      { id: 'avg_engagement', label: 'Engagement Rate', icon: Heart, format: (val) => val != null ? `${val}%` : 'Not Available' }
+      {
+        id: 'followers',
+        label: 'Followers',
+        icon: Users,
+        format: (val) => val !== null && val !== undefined ? val.toLocaleString() : 'Data unavailable from API'
+      },
+      {
+        id: 'following',
+        label: 'Following',
+        icon: Users,
+        format: (val) => val !== null && val !== undefined ? val.toLocaleString() : 'Data unavailable from API'
+      },
+      {
+        id: 'media_count',
+        label: 'Media Posts',
+        icon: Video,
+        format: (val) => val !== null && val !== undefined ? val.toLocaleString() : 'Data unavailable from API'
+      },
+      {
+        id: 'reach',
+        label: 'Total Reach (Meta Graph API)',
+        icon: Eye,
+        format: (val, isConnected) => isConnected ? (val !== null && val !== undefined ? val.toLocaleString() : 'Data unavailable from API') : 'Requires Account Connection'
+      },
+      {
+        id: 'impressions',
+        label: 'Impressions (Meta Graph API)',
+        icon: Eye,
+        format: (val, isConnected) => isConnected ? (val !== null && val !== undefined ? val.toLocaleString() : 'Data unavailable from API') : 'Requires Account Connection'
+      },
+      {
+        id: 'avg_engagement',
+        label: 'Engagement Rate',
+        icon: Heart,
+        format: (val, isConnected) => isConnected ? (val !== null && val !== undefined ? `${val}%` : 'Data unavailable from API') : 'Requires Account Connection'
+      }
     ]
   },
   youtube: {
@@ -21,12 +51,12 @@ const platformConfigs = {
     icon: '🔴',
     color: '#ff0000',
     metrics: [
-      { id: 'subscribers', label: 'Subscribers', icon: Users, format: (val) => val ? val.toLocaleString() : '1,250,000' },
-      { id: 'views', label: 'Total Channel Views', icon: Eye, format: (val) => val ? val.toLocaleString() : '84,500,000' },
-      { id: 'videos', label: 'Channel Videos', icon: Video, format: (val) => val ? val.toLocaleString() : '342' },
-      { id: 'watch_time_hours', label: 'Watch Time (hrs)', icon: Clock, format: (val) => val ? val.toLocaleString() : '4,225,000' },
-      { id: 'estimated_rpm', label: 'Estimated RPM', icon: Award, format: (val) => `$${val || '3.40'}` },
-      { id: 'estimated_revenue', label: 'Estimated Revenue', icon: Award, format: (val) => `$${(val || 287300).toLocaleString()}` }
+      { id: 'subscribers', label: 'Subscribers', icon: Users, format: (val) => val ? val.toLocaleString() : '0' },
+      { id: 'views', label: 'Total Channel Views', icon: Eye, format: (val) => val ? val.toLocaleString() : '0' },
+      { id: 'videos', label: 'Channel Videos', icon: Video, format: (val) => val ? val.toLocaleString() : '0' },
+      { id: 'watch_time_hours', label: 'Watch Time (hrs)', icon: Clock, format: (val) => val ? val.toLocaleString() : '0' },
+      { id: 'estimated_rpm', label: 'Estimated RPM', icon: Award, format: (val) => `$${val || 2.80}` },
+      { id: 'estimated_revenue', label: 'Estimated Revenue', icon: Award, format: (val) => `$${(val || 0).toLocaleString()}` }
     ]
   },
   twitter: {
@@ -37,8 +67,8 @@ const platformConfigs = {
       { id: 'followers', label: 'Followers', icon: Users, format: (val) => val ? val.toLocaleString() : 'N/A' },
       { id: 'following', label: 'Following', icon: Users, format: (val) => val ? val.toLocaleString() : 'N/A' },
       { id: 'tweets', label: 'Total Tweets', icon: Video, format: (val) => val ? val.toLocaleString() : 'N/A' },
-      { id: 'impressions', label: 'Tweet Impressions (OAuth Required)', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
-      { id: 'retweets', label: 'Retweets (OAuth Required)', icon: Share2, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
+      { id: 'impressions', label: 'Tweet Impressions', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
+      { id: 'retweets', label: 'Retweets', icon: Share2, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
       { id: 'engagement', label: 'Engagement Rate', icon: Heart, format: (val, isConnected) => isConnected ? `${val}%` : 'Requires Account Connection' }
     ]
   },
@@ -48,8 +78,8 @@ const platformConfigs = {
     color: '#0a66c2',
     metrics: [
       { id: 'followers', label: 'Connections / Followers', icon: Users, format: (val) => val ? val.toLocaleString() : 'N/A' },
-      { id: 'impressions', label: 'Post Impressions (OAuth Required)', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
-      { id: 'clicks', label: 'Profile Clicks (OAuth Required)', icon: ExternalLink, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
+      { id: 'impressions', label: 'Post Impressions', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
+      { id: 'clicks', label: 'Profile Clicks', icon: ExternalLink, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
       { id: 'engagement', label: 'Engagement Rate', icon: Heart, format: (val, isConnected) => isConnected ? `${val}%` : 'Requires Account Connection' }
     ]
   },
@@ -59,7 +89,7 @@ const platformConfigs = {
     color: '#9146ff',
     metrics: [
       { id: 'followers', label: 'Followers', icon: Users, format: (val) => val ? val.toLocaleString() : 'N/A' },
-      { id: 'subscribers', label: 'Subscribers (OAuth Required)', icon: Award, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
+      { id: 'subscribers', label: 'Subscribers', icon: Award, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
       { id: 'hours_watched', label: 'Stream Hours Watched', icon: Clock, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
       { id: 'peak_viewers', label: 'Peak Viewers', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' }
     ]
@@ -69,36 +99,59 @@ const platformConfigs = {
 export default function PlatformDashboardView({ platformKey, token, setActiveTab }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchHandle, setSearchHandle] = useState('');
   const [lookupData, setLookupData] = useState(null);
   const [lookupLoading, setLookupLoading] = useState(false);
 
   const key = platformKey.replace('platform_', '').toLowerCase();
-  const config = platformConfigs[key] || platformConfigs.youtube;
+  const config = platformConfigs[key] || platformConfigs.instagram;
 
   const fetchPlatformData = async (handleQuery = '') => {
     try {
       if (handleQuery) setLookupLoading(true);
       else setLoading(true);
-      setError(null);
 
-      const url = `http://127.0.0.1:8000/api/analytics/platform/${key}` + (handleQuery ? `?handle=${encodeURIComponent(handleQuery)}` : '');
+      let url;
+
+      if (key === "youtube" && !handleQuery) {
+          url = "http://127.0.0.1:8000/api/social/youtube-dashboard";
+      } else if (key === "instagram" && handleQuery) {
+        // Connect and lookup target Instagram handle via Meta API Business Discovery
+        const connRes = await fetch("http://127.0.0.1:8000/api/instagram/connect", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ username: handleQuery })
+        });
+        if (connRes.ok) {
+          const profRes = await fetch("http://127.0.0.1:8000/api/instagram/profile", {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (profRes.ok) {
+            const json = await profRes.json();
+            setLookupData(json);
+          }
+        }
+        return;
+      } else if (key === "instagram") {
+        url = "http://127.0.0.1:8000/api/instagram/profile";
+      } else {
+        url = `http://127.0.0.1:8000/api/analytics/platform/${key}` +
+              (handleQuery ? `?handle=${encodeURIComponent(handleQuery)}` : "");
+      }
+
       const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const json = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(json.detail || json.message || 'Failed to fetch platform data');
+      if (res.ok) {
+        const json = await res.json();
+        if (handleQuery) setLookupData(json);
+        else setData(json);
       }
-      
-      if (handleQuery) setLookupData(json);
-      else setData(json);
-      
     } catch (err) {
       console.error(err);
-      setError(err.message);
     } finally {
       setLoading(false);
       setLookupLoading(false);
@@ -118,46 +171,25 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-        <div className="theme-card" style={{ height: '120px', background: 'rgba(255,255,255,0.02)', animation: 'pulse 1.5s infinite' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-          {[1,2,3,4,5,6].map(i => (
-             <div key={i} className="theme-card" style={{ height: '100px', background: 'rgba(255,255,255,0.02)', animation: 'pulse 1.5s infinite' }} />
-          ))}
-        </div>
-        <div className="theme-card" style={{ height: '350px', background: 'rgba(255,255,255,0.02)', animation: 'pulse 1.5s infinite' }} />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="theme-card" style={{ padding: '40px', textAlign: 'center', border: '1px solid #ef4444' }}>
-        <ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 16px' }} />
-        <h3 style={{ color: '#ef4444', fontSize: '20px', margin: '0 0 12px' }}>Unable to retrieve analytics</h3>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Reason: {error}</p>
-        <button 
-          onClick={() => fetchPlatformData()}
-          style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}
-        >
-          Retry Fetch
-        </button>
+      <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+        <RefreshCw className="animate-spin" size={32} style={{ margin: '0 auto 16px', color: config.color }} />
+        <h3>Fetching {config.name} Telemetry Feed...</h3>
       </div>
     );
   }
 
   const activeData = lookupData || data;
-  const isConnected = activeData && (activeData.connected === true || activeData.subscribers > 0 || activeData.views > 0);
+  const isConnected = activeData && activeData.connected === true;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
       
-      {/* Search Input Bar for Public Handle Lookup */}
+      {/* Public Handle Lookup */}
       <form onSubmit={handleSearchSubmit} className="theme-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Search size={18} color="var(--text-secondary)" />
         <input
           type="text"
-          placeholder={`Enter public ${config.name} channel handle or ID (e.g. @mkbhd or UCBJycsmduvYEL83R_U4JriQ)`}
+          placeholder={`Public Lookup Mode: Enter public ${config.name} handle or channel ID (e.g. @mkbhd)`}
           value={searchHandle}
           onChange={(e) => setSearchHandle(e.target.value)}
           style={{
@@ -173,7 +205,7 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
           type="submit"
           disabled={lookupLoading}
           style={{
-            padding: '8px 18px',
+            padding: '8px 16px',
             borderRadius: '10px',
             background: config.color,
             color: '#ffffff',
@@ -183,7 +215,7 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
             cursor: 'pointer'
           }}
         >
-          {lookupLoading ? 'Searching...' : 'Search Channel'}
+          {lookupLoading ? 'Searching...' : 'Public Lookup'}
         </button>
         {lookupData && (
           <button
@@ -191,14 +223,56 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
             onClick={() => { setLookupData(null); setSearchHandle(''); }}
             style={{ background: 'transparent', border: '1px solid var(--border-primary)', color: 'var(--text-secondary)', padding: '8px 12px', borderRadius: '10px', fontSize: '12px', cursor: 'pointer' }}
           >
-            Clear Search
+            Clear Lookup
           </button>
         )}
       </form>
 
+      {/* Connection Notice / Banner */}
+      {!isConnected && (
+        <div style={{
+          background: `linear-gradient(135deg, ${config.color}15, rgba(15, 23, 42, 0.6))`,
+          border: `1px solid ${config.color}33`,
+          borderRadius: '16px',
+          padding: '20px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <Lock size={24} color={config.color} />
+            <div>
+              <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                {searchHandle ? `Public Lookup Mode (@${searchHandle})` : `${config.name} Account Disconnected`}
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Connect your official {config.name} account to unlock real-time private reach, impressions, reels, and audience insights.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setActiveTab && setActiveTab('settings')}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '10px',
+              background: config.color,
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            Connect {config.name} in Settings ➔
+          </button>
+        </div>
+      )}
+
       {/* Platform Banner */}
       <div style={{
-        background: `linear-gradient(135deg, ${config.color}22, rgba(15, 23, 42, 0.7))`,
+        background: `linear-gradient(135deg, ${config.color}22, rgba(15, 23, 42, 0.6))`,
         border: `1px solid ${config.color}44`,
         borderRadius: '20px',
         padding: '24px',
@@ -210,35 +284,41 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <img
-            src={activeData?.thumbnail_url || activeData?.profile?.profile_picture_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${key}`}
+            src={activeData?.profile?.profile_picture_url || activeData?.thumbnail_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${key}`}
             alt="Profile"
-            style={{ width: '64px', height: '64px', borderRadius: '50%', border: `2px solid ${config.color}`, objectFit: 'cover' }}
+            style={{ width: '60px', height: '60px', borderRadius: '50%', border: `2px solid ${config.color}`, objectFit: 'cover' }}
           />
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {activeData?.channel_name || activeData?.profile?.name || `${config.name} Studio`}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
+                {activeData?.profile?.username ? `@${activeData.profile.username}` : (activeData?.channel_name || `${config.name} Dashboard`)}
               </h2>
               <span style={{
-                background: `${config.color}33`,
-                color: config.color,
+                background: isConnected ? `${config.color}33` : 'rgba(255,255,255,0.08)',
+                color: isConnected ? config.color : 'var(--text-secondary)',
                 fontSize: '11px',
                 fontWeight: 700,
-                padding: '3px 10px',
+                padding: '2px 10px',
                 borderRadius: '12px'
               }}>
-                ✓ ACTIVE CHANNEL STREAM
+                {isConnected ? '✓ VERIFIED API STREAM' : 'PUBLIC LOOKUP MODE'}
               </span>
             </div>
             <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
-              {activeData?.custom_url || `@${key}_channel`} • {activeData?.description || 'Official Channel Telemetry'}
+              {activeData?.profile?.biography || activeData?.custom_url || `@${key}_creator`}
             </p>
           </div>
         </div>
 
         <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-secondary)' }}>
-          <div>Status: <span style={{ color: '#10b981', fontWeight: 700 }}>● Live Channel Feed Active</span></div>
-          {activeData?.country && <div>Region: <strong style={{ color: 'var(--text-primary)' }}>{activeData.country}</strong></div>}
+          <div>Status: <span style={{ color: isConnected ? '#10b981' : '#f59e0b', fontWeight: 700 }}>
+            {isConnected ? '● Meta Graph API Connected' : '● Disconnected'}
+          </span></div>
+          {activeData?.profile?.last_synced_at && (
+            <div style={{ marginTop: '4px' }}>
+              Last Synced: <strong>{activeData.profile.last_synced_at}</strong>
+            </div>
+          )}
         </div>
       </div>
 
@@ -246,8 +326,9 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
         {config.metrics.map(m => {
           const IconComp = m.icon;
-          let rawVal = activeData?.[m.id] || activeData?.profile?.[m.id] || activeData?.analytics?.[m.id];
+          let rawVal = activeData?.profile?.[m.id] || activeData?.analytics?.[m.id] || activeData?.[m.id];
           const formatted = m.format(rawVal, isConnected);
+          const isUnavailable = formatted === 'Data unavailable from API' || formatted === 'Requires Account Connection';
 
           return (
             <div key={m.id} className="theme-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -255,104 +336,16 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
                 <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{m.label}</span>
                 <IconComp size={18} color={config.color} />
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
+              <div style={{ fontSize: isUnavailable ? '14px' : '18px', fontWeight: 800, color: isUnavailable ? '#f87171' : 'var(--text-primary)' }}>
                 {formatted}
               </div>
-              <div style={{ fontSize: '11px', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <TrendingUp size={12} /> Live API Telemetry
+              <div style={{ fontSize: '11px', color: isConnected && !isUnavailable ? '#10b981' : 'var(--text-muted)', fontWeight: 600 }}>
+                {isConnected && !isUnavailable ? '↑ Verified API Field' : (isUnavailable ? '⚠ API Field Unretrievable' : 'Public Profile Endpoint')}
               </div>
             </div>
           );
         })}
       </div>
-
-      {/* Analytics Chart Section */}
-      {activeData?.chart_data !== undefined && (
-        <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              📈 {config.name} Channel View & Revenue Trajectory
-            </h3>
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Last 6 Months</span>
-          </div>
-
-          <div style={{ width: '100%', height: 300 }}>
-            {activeData.chart_data.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={activeData.chart_data}>
-                  <defs>
-                    <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={config.color} stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor={config.color} stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, rgba(255,255,255,0.08))" />
-                  <XAxis dataKey="month" stroke="var(--text-secondary)" fontSize={12} />
-                  <YAxis stroke="var(--text-secondary)" fontSize={12} tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', borderRadius: '12px' }}
-                    formatter={(val, name) => [name === 'views' ? val.toLocaleString() : `$${val.toLocaleString()}`, name === 'views' ? 'Channel Views' : 'Estimated Revenue']}
-                  />
-                  <Area type="monotone" dataKey="views" stroke={config.color} strokeWidth={3} fillOpacity={1} fill="url(#colorViews)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
-                <span>No historical data available for this account.</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Top Videos Section */}
-      {activeData?.recent_videos !== undefined && (
-        <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            🎬 Top Performing Channel Uploads
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {activeData.recent_videos.length > 0 ? activeData.recent_videos.map((vid) => (
-              <div
-                key={vid.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '14px 18px',
-                  borderRadius: '12px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--border-color, rgba(255,255,255,0.08))'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${config.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Play size={18} color={config.color} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{vid.title}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      Published {vid.date} • Duration {vid.duration}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '13px' }}>
-                  <div><strong style={{ color: 'var(--text-primary)' }}>{vid.views}</strong> <span style={{ color: 'var(--text-secondary)' }}>views</span></div>
-                  <div><strong style={{ color: 'var(--text-primary)' }}>{vid.likes}</strong> <span style={{ color: 'var(--text-secondary)' }}>likes</span></div>
-                  <div><strong style={{ color: 'var(--text-primary)' }}>{vid.comments}</strong> <span style={{ color: 'var(--text-secondary)' }}>comments</span></div>
-                </div>
-              </div>
-            )) : (
-              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                No recent media posts available.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

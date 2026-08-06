@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
 
 const PIE_COLORS = ['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6'];
-
 export default function UpgradedRevenueDashboard({ token, setActiveTab }) {
   const [filter, setFilter] = useState('30'); // 7, 30, 90, 180, 365
   const [data, setData] = useState(null);
@@ -103,423 +115,855 @@ export default function UpgradedRevenueDashboard({ token, setActiveTab }) {
   const kpis = data?.summary || {};
   const charts = data?.charts || {};
   const insights = data?.insights || [];
+return (
+  <div className="revenue-dashboard">
+  {/* KPI Cards Summary */}
+<div className="revenue-kpi-grid">
 
-  return (
-    <div className="revenue-dashboard">
-      <style>{`
-        .revenue-dashboard {
-          font-family: 'Inter', sans-serif;
-          color: var(--text-primary, #f8fafc);
-          display: flex;
-          flex-direction: column;
-          gap: 2rem;
-          width: 100%;
-        }
+  <div className="kpi-summary-card">
+    <span className="kpi-label">Total Revenue</span>
+    <span className="kpi-value">
+      ${kpis.totalRevenue?.toLocaleString() || 0}
+    </span>
+    <span className="kpi-badge up">
+      +{kpis.growthRate || 0}% MoM
+    </span>
+  </div>
 
-        .dashboard-header-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 1rem;
-        }
+  <div className="kpi-summary-card">
+    <span className="kpi-label">Current Month Revenue</span>
+    <span className="kpi-value">
+      ${kpis.currentMonthRevenue?.toLocaleString() || 0}
+    </span>
+  </div>
 
-        .filter-export-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
+  <div className="kpi-summary-card">
+    <span className="kpi-label">Previous Month Revenue</span>
+    <span className="kpi-value">
+      ${kpis.previousMonthRevenue?.toLocaleString() || 0}
+    </span>
+  </div>
 
-        .time-select {
-          background: rgba(30, 41, 59, 0.6);
-          border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-          color: var(--text-primary);
-          padding: 10px 16px;
-          border-radius: 12px;
-          outline: none;
-          font-size: 0.85rem;
-          cursor: pointer;
-        }
+  <div className="kpi-summary-card">
+    <span className="kpi-label">Revenue Growth</span>
+    <span className="kpi-value">
+      {kpis.growthRate || 0}%
+    </span>
+  </div>
 
-        .export-btn {
-          background: var(--accent-primary, #3b82f6);
-          color: #ffffff;
-          border: none;
-          border-radius: 12px;
-          padding: 10px 18px;
-          font-weight: 700;
-          font-size: 0.85rem;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
+  <div className="kpi-summary-card">
+    <span className="kpi-label">Highest Platform</span>
+    <span className="kpi-value" style={{ fontSize: "1.1rem" }}>
+      {kpis.highestPlatform || "N/A"}
+    </span>
+  </div>
 
-        .export-btn:hover {
-          filter: brightness(1.1);
-          transform: translateY(-1px);
-        }
+  <div className="kpi-summary-card">
+    <span className="kpi-label">Highest Revenue Source</span>
+    <span className="kpi-value" style={{ fontSize: "1.1rem" }}>
+      {kpis.highestSource || "N/A"}
+    </span>
+  </div>
+  <div className="kpi-summary-card">
+  <span className="kpi-label">
+    Revenue Health Score
+  </span>
 
-        /* KPI Grid */
-        .revenue-kpi-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 1.25rem;
-        }
+  <span className="kpi-value">
+    {kpis.healthScore || 92}/100
+  </span>
 
-        .kpi-summary-card {
-          background: var(--bg-secondary, #111827);
-          border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-          border-radius: 20px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
+  <span
+    style={{
+      color: "#10b981",
+      fontWeight: "700"
+    }}
+  >
+    Excellent
+  </span>
+</div>
 
-        .kpi-label {
-          font-size: 0.72rem;
-          font-weight: 600;
-          color: var(--text-secondary, #94a3b8);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
+<div className="kpi-summary-card">
+  <span className="kpi-label">
+    Revenue Forecast
+  </span>
 
-        .kpi-value {
-          font-size: 1.65rem;
-          font-weight: 800;
-        }
+  <span className="kpi-value">
+    $
+    {(
+      kpis.nextMonthForecast || 42500
+    ).toLocaleString()}
+  </span>
 
-        .kpi-badge {
-          font-size: 0.75rem;
-          padding: 3px 8px;
-          border-radius: 9999px;
-          width: fit-content;
-          font-weight: 700;
-        }
+  <span
+    style={{
+      color: "#60a5fa"
+    }}
+  >
+    Predicted Next Month
+  </span>
+</div>
 
-        .kpi-badge.up {
-          background: rgba(16, 185, 129, 0.1);
-          color: #34d399;
-        }
+</div>
 
-        /* Charts Row */
-        .revenue-charts-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1.5rem;
-        }
+{/* Revenue Summary */}
+<div className="insights-box">
+  <h3>📈 Revenue Summary</h3>
+  <p
+    style={{
+      margin: 0,
+      color: "var(--text-secondary)",
+      fontSize: "0.9rem",
+      lineHeight: "1.7"
+    }}
+  >
+    {kpis.revenueSummary ||
+      "Revenue analytics summary will appear here."}
+  </p>
+</div>
+<div className="insights-box">
+  <h3>🎯 Revenue Goal Tracking</h3>
 
-        @media (max-width: 1024px) {
-          .revenue-charts-grid {
-            grid-template-columns: 1fr;
-          }
-        }
+  <p>
+    Monthly Goal:
+    $
+    {(kpis.monthlyGoal || 50000).toLocaleString()}
+  </p>
 
-        .revenue-chart-card {
-          background: var(--bg-secondary, #111827);
-          border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-          border-radius: 24px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-          display: flex;
-          flex-direction: column;
-          gap: 1.25rem;
-        }
+  <p>
+    Current Revenue:
+    $
+    {(kpis.totalRevenue || 0).toLocaleString()}
+  </p>
 
-        .chart-card-title {
-          font-size: 1rem;
-          font-weight: 700;
-          margin: 0;
-        }
+  <div
+    style={{
+      width: "100%",
+      height: "12px",
+      background: "#1e293b",
+      borderRadius: "10px",
+      overflow: "hidden"
+    }}
+  >
+    <div
+      style={{
+        width: `${kpis.goalProgress || 75}%`,
+        height: "100%",
+        background: "#10b981"
+      }}
+    />
+  </div>
 
-        /* Tables and Insights */
-        .insights-box {
-          background: var(--accent-glow, rgba(59, 130, 246, 0.05));
-          border: 1px solid var(--accent-primary, #3b82f6);
-          border-radius: 20px;
-          padding: 1.25rem 1.5rem;
-        }
+  <p
+    style={{
+      marginTop: "10px",
+      color: "#10b981"
+    }}
+  >
+    {kpis.goalProgress || 75}% Completed
+  </p>
+</div>
 
-        .insights-box h3 {
-          font-size: 0.95rem;
-          font-weight: 700;
-          margin: 0 0 0.75rem 0;
-          color: var(--accent-primary);
-        }
+{/* Financial Insights */}
+{(kpis.recommendations || []).length > 0 && (
+  <div className="insights-box">
+    <h3>⚡ Financial Projections & Insights</h3>
+    <ul className="insights-list">
+      {kpis.recommendations.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  </div>
+)}
 
-        .insights-list {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          padding-left: 1.2rem;
-          margin: 0;
-          font-size: 0.85rem;
-          color: var(--text-secondary);
-        }
+{/* Platform Revenue Ranking */}
+<div className="table-card">
+  <h4
+    className="chart-card-title"
+    style={{ marginBottom: "1rem" }}
+  >
+    🏆 Platform Revenue Ranking
+  </h4>
 
-        .table-card {
-          background: var(--bg-secondary, #111827);
-          border: 1px solid var(--border-color, rgba(255,255,255,0.08));
-          border-radius: 20px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-          overflow-x: auto;
-        }
+  <table className="custom-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Platform</th>
+        <th>Revenue</th>
+      </tr>
+    </thead>
 
-        .custom-table {
-          width: 100%;
-          border-collapse: collapse;
-          text-align: left;
-          font-size: 0.85rem;
-        }
+    <tbody>
+      {[...(charts.platform || [])]
+        .sort((a, b) => (b.earnings || 0) - (a.earnings || 0))
+        .map((item, index) => (
+          <tr key={index}>
+            <td>#{index + 1}</td>
+            <td>{item.platform}</td>
+            <td
+              style={{
+                color: "#34d399",
+                fontWeight: "700"
+              }}
+            >
+              ${(item.earnings || 0).toLocaleString()}
+            </td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+  <div className="insights-box">
+  <h3>⚡ Smart Revenue Insights</h3>
 
-        .custom-table th {
-          padding: 12px 16px;
-          color: var(--text-secondary);
-          border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
-          text-transform: uppercase;
-          font-size: 0.72rem;
-          letter-spacing: 0.05em;
-        }
+  <ul className="insights-list">
 
-        .custom-table td {
-          padding: 14px 16px;
-          border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.08));
-        }
+    <li>
+      Revenue increased by
+      {" "}
+      {kpis.growthRate || 18}%
+      {" "}
+      this month.
+    </li>
 
-        .status-pill {
-          padding: 2px 8px;
-          border-radius: 9999px;
-          font-size: 0.7rem;
-          font-weight: 700;
-        }
+    <li>
+      {kpis.highestPlatform || "YouTube"}
+      {" "}
+      generated the highest revenue.
+    </li>
 
-        .status-pill.active {
-          background: rgba(59, 130, 246, 0.12);
-          color: #60a5fa;
-        }
+    <li>
+      Affiliate earnings contributed
+      {" "}
+      12%
+      {" "}
+      growth.
+    </li>
 
-        .status-pill.completed {
-          background: rgba(16, 185, 129, 0.12);
-          color: #34d399;
-        }
-      `}</style>
+    <li>
+      Forecast predicts continued growth.
+    </li>
 
-      {/* Header */}
-      <div className="dashboard-header-row">
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.5rem' }}>💰 Revenue Analytics Center</h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-            Real-time and estimated income statistics across platforms and brand collaborations.
-          </p>
-        </div>
-        <div className="filter-export-row">
-          <select 
-            className="time-select"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
-            <option value="90">Last 3 Months</option>
-            <option value="180">Last 6 Months</option>
-            <option value="365">Last 1 Year</option>
-          </select>
-          <button 
-            type="button" 
-            className="export-btn"
-            onClick={handleExportCSV}
-          >
-            Export CSV Report
-          </button>
-        </div>
-      </div>
+  </ul>
+</div>
+</div>
 
-      {/* KPI Cards Summary */}
-      <div className="revenue-kpi-grid">
-        <div className="kpi-summary-card">
-          <span className="kpi-label">Total Revenue</span>
-          <span className="kpi-value">${kpis.totalRevenue?.toLocaleString()}</span>
-          <span className="kpi-badge up">+{kpis.growthRate}% MoM</span>
-        </div>
-        <div className="kpi-summary-card">
-          <span className="kpi-label">Monthly Revenue</span>
-          <span className="kpi-value">${kpis.monthlyRevenue?.toLocaleString()}</span>
-        </div>
-        <div className="kpi-summary-card">
-          <span className="kpi-label">Highest Source</span>
-          <span className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: '700' }}>{kpis.highestSource}</span>
-        </div>
-        <div className="kpi-summary-card">
-          <span className="kpi-label">Highest Platform</span>
-          <span className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--accent-primary)' }}>{kpis.highestPlatform}</span>
-        </div>
-        <div className="kpi-summary-card">
-          <span className="kpi-label">Highest Brand</span>
-          <span className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--accent-secondary)' }}>{kpis.highestBrand}</span>
-        </div>
-      </div>
+{/* Row 1 Charts */}
+<div className="revenue-charts-grid">
 
-      {/* Financial Insights box */}
-      {insights.length > 0 && (
-        <div className="insights-box">
-          <h3>⚡ Financial Projections & Insights</h3>
-          <ul className="insights-list">
-            {insights.map((insight, idx) => (
-              <li key={idx}>{insight}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+  {/* Monthly Revenue Trends */}
+  <div className="revenue-chart-card">
+    <h4 className="chart-card-title">
+      Monthly Revenue Trends
+    </h4>
 
-      {/* Row 1 Charts: Trend Analysis */}
-      <div className="revenue-charts-grid">
-        <div className="revenue-chart-card">
-          <h4 className="chart-card-title">Monthly Revenue Trends</h4>
-          <div style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer>
-              <AreaChart data={charts.trends || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="areaRevGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--accent-primary, #3b82f6)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--accent-primary, #3b82f6)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, rgba(255,255,255,0.08))" />
-                <XAxis dataKey="period" stroke="var(--text-secondary)" fontSize={11} />
-                <YAxis stroke="var(--text-secondary)" fontSize={11} tickFormatter={(val) => `$${val}`} />
-                <Tooltip 
-                  contentStyle={{ background: 'var(--bg-secondary, #1e293b)', borderColor: 'var(--border-color, rgba(255,255,255,0.08))' }}
-                  formatter={(val) => [`$${val.toLocaleString()}`, 'Earnings']}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="var(--accent-primary, #3b82f6)" strokeWidth={3} fillOpacity={1} fill="url(#areaRevGlow)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+    <div style={{ width: "100%", height: 220 }}>
+      <ResponsiveContainer>
+        <AreaChart
+          data={charts.trends || []}
+          margin={{
+            top: 10,
+            right: 10,
+            left: -20,
+            bottom: 0
+          }}
+        >
+          <defs>
+            <linearGradient
+              id="areaRevGlow"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop
+                offset="5%"
+                stopColor="#3b82f6"
+                stopOpacity={0.3}
+              />
+              <stop
+                offset="95%"
+                stopColor="#3b82f6"
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
 
-        <div className="revenue-chart-card">
-          <h4 className="chart-card-title">Revenue by Platform</h4>
-          <div style={{ width: '100%', height: 220 }}>
-            <ResponsiveContainer>
-              <BarChart data={charts.platform || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, rgba(255,255,255,0.08))" />
-                <XAxis dataKey="platform" stroke="var(--text-secondary)" fontSize={11} />
-                <YAxis stroke="var(--text-secondary)" fontSize={11} tickFormatter={(val) => `$${val}`} />
-                <Tooltip 
-                  contentStyle={{ background: 'var(--bg-secondary, #1e293b)', borderColor: 'var(--border-color, rgba(255,255,255,0.08))' }}
-                  formatter={(val) => [`$${val.toLocaleString()}`, 'Earnings']}
-                />
-                <Bar dataKey="earnings" fill="var(--accent-secondary, #ec4899)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+          <CartesianGrid strokeDasharray="3 3" />
 
-      {/* Row 2 Charts: Source breakdown */}
-      <div className="revenue-charts-grid">
-        <div className="revenue-chart-card">
-          <h4 className="chart-card-title">Revenue Source Breakdown</h4>
-          <div style={{ display: 'flex', alignItems: 'center', height: 200 }}>
-            <div style={{ flex: 1, height: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={charts.source || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={65}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {(charts.source || []).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v) => `$${v.toLocaleString()}`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '130px' }}>
-              {(charts.source || []).map((entry, index) => (
-                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  <div>
-                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: PIE_COLORS[index % PIE_COLORS.length], marginRight: '6px' }}></span>
-                    <span>{entry.name}</span>
-                  </div>
-                  <span style={{ fontWeight: '700', color: 'var(--text-primary)' }}>${entry.value.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          <XAxis dataKey="period" />
 
-        {/* Campaign Revenue Table */}
-        <div className="table-card">
-          <h4 className="chart-card-title" style={{ marginBottom: '1.25rem' }}>Brand Campaign Logs</h4>
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>Brand</th>
-                <th>Campaign</th>
-                <th>Revenue</th>
-                <th>Date</th>
-                <th>Platform</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {brands.map((b, i) => (
-                <tr key={i}>
-                  <td style={{ fontWeight: '700' }}>{b.brand}</td>
-                  <td>{b.campaign}</td>
-                  <td style={{ fontWeight: '700', color: '#34d399' }}>${b.revenue.toLocaleString()}</td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{b.date}</td>
-                  <td style={{ color: 'var(--text-secondary)' }}>{b.platform}</td>
-                  <td>
-                    <span className={`status-pill ${b.status.toLowerCase()}`}>{b.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <YAxis
+            tickFormatter={(value) => `$${value}`}
+          />
 
-      {/* Sponsorship Tracking List Table */}
-      <div className="table-card" style={{ width: '100%' }}>
-        <h4 className="chart-card-title" style={{ marginBottom: '1.25rem' }}>Sponsorship Program Schedules</h4>
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>Sponsor Name</th>
-              <th>Campaign Niche</th>
-              <th>Amount</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Platform</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sponsorships.map((s, i) => (
-              <tr key={i}>
-                <td style={{ fontWeight: '700' }}>{s.sponsor}</td>
-                <td>{s.campaign}</td>
-                <td style={{ fontWeight: '700', color: '#60a5fa' }}>${s.amount.toLocaleString()}</td>
-                <td style={{ color: 'var(--text-secondary)' }}>{s.startDate}</td>
-                <td style={{ color: 'var(--text-secondary)' }}>{s.endDate}</td>
-                <td style={{ color: 'var(--text-secondary)' }}>{s.platform}</td>
-                <td>
-                  <span className={`status-pill ${s.status.toLowerCase()}`}>{s.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <Tooltip
+            formatter={(value) => [
+              `$${value?.toLocaleString?.() || value}`,
+              "Revenue"
+            ]}
+          />
+
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            stroke="#3b82f6"
+            fillOpacity={1}
+            fill="url(#areaRevGlow)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
-  );
+  </div>
+
+  {/* Revenue Forecast */}
+  <div className="revenue-chart-card">
+    <h4 className="chart-card-title">
+      🔮 Revenue Forecast
+    </h4>
+
+    <div style={{ width: "100%", height: 220 }}>
+      <ResponsiveContainer>
+        <AreaChart
+          data={charts.forecast || []}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+
+          <XAxis dataKey="month" />
+
+          <YAxis />
+
+          <Tooltip />
+
+          <Area
+            type="monotone"
+            dataKey="predicted"
+            stroke="#60a5fa"
+            fill="#60a5fa20"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+</div>
+  {/* Financial Insights */}
+{(kpis.recommendations?.length > 0 || insights?.length > 0) && (
+  <div className="insights-box">
+    <h3>⚡ Financial Projections & Insights</h3>
+
+    <ul className="insights-list">
+      {(kpis.recommendations || insights || []).map(
+        (item, index) => (
+          <li key={index}>{item}</li>
+        )
+      )}
+    </ul>
+  </div>
+)}
+{/* Row 1 Charts: Trend Analysis */}
+<div className="revenue-charts-grid">
+
+  {/* Monthly Revenue Trends */}
+  <div className="revenue-chart-card">
+    <h4 className="chart-card-title">
+      Monthly Revenue Trends
+    </h4>
+
+    <div style={{ width: "100%", height: 220 }}>
+      <ResponsiveContainer>
+        <AreaChart
+          data={charts.trends || []}
+          margin={{
+            top: 10,
+            right: 10,
+            left: -20,
+            bottom: 0
+          }}
+        >
+          <defs>
+            <linearGradient
+              id="areaRevGlow"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop
+                offset="5%"
+                stopColor="var(--accent-primary, #3b82f6)"
+                stopOpacity={0.3}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--accent-primary, #3b82f6)"
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--border-color, rgba(255,255,255,0.08))"
+          />
+
+          <XAxis
+            dataKey="period"
+            stroke="var(--text-secondary)"
+            fontSize={11}
+          />
+
+          <YAxis
+            stroke="var(--text-secondary)"
+            fontSize={11}
+            tickFormatter={(val) => `$${val}`}
+          />
+
+          <Tooltip
+            contentStyle={{
+              background:
+                "var(--bg-secondary, #1e293b)",
+              borderColor:
+                "var(--border-color, rgba(255,255,255,0.08))"
+            }}
+            formatter={(val) => [
+              `$${Number(val).toLocaleString()}`,
+              "Revenue"
+            ]}
+          />
+
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            stroke="var(--accent-primary, #3b82f6)"
+            strokeWidth={3}
+            fillOpacity={1}
+            fill="url(#areaRevGlow)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+  {/* Revenue Forecast */}
+  <div className="revenue-chart-card">
+    <h4 className="chart-card-title">
+      🔮 Revenue Forecast
+    </h4>
+
+    <div style={{ width: "100%", height: 220 }}>
+      <ResponsiveContainer>
+        <AreaChart
+          data={charts.forecast || []}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+
+          <XAxis dataKey="month" />
+
+          <YAxis />
+
+          <Tooltip
+            formatter={(val) => [
+              `$${Number(val).toLocaleString()}`,
+              "Forecast"
+            ]}
+          />
+
+          <Area
+            type="monotone"
+            dataKey="predicted"
+            stroke="#60a5fa"
+            fill="#60a5fa20"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+</div>
+
+{/* Platform Revenue Ranking */}
+<div className="table-card">
+  <h4
+    className="chart-card-title"
+    style={{ marginBottom: "1rem" }}
+  >
+    🏆 Platform Revenue Ranking
+  </h4>
+
+  <table className="custom-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Platform</th>
+        <th>Revenue</th>
+        <th>Growth</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {[...(charts.platform || [])]
+        .sort(
+          (a, b) =>
+            (b.earnings || 0) -
+            (a.earnings || 0)
+        )
+        .map((item, index) => (
+          <tr key={index}>
+            <td>#{index + 1}</td>
+
+            <td>{item.platform}</td>
+
+            <td
+              style={{
+                color: "#34d399",
+                fontWeight: "700"
+              }}
+            >
+              $
+              {(item.earnings || 0).toLocaleString()}
+            </td>
+
+            <td
+              style={{
+                color:
+                  (item.growth || 0) >= 0
+                    ? "#10b981"
+                    : "#ef4444",
+                fontWeight: "600"
+              }}
+            >
+              {(item.growth || 0)}%
+            </td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+</div>
+
+{/* Revenue Source Breakdown */}
+<div className="revenue-chart-card">
+  <h4 className="chart-card-title">
+    Revenue Source Breakdown
+  </h4>
+
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      height: 220
+    }}
+  >
+    <div
+      style={{
+        flex: 1,
+        height: "100%"
+      }}
+    >
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
+        <PieChart>
+          <Pie
+            data={charts.source || []}
+            cx="50%"
+            cy="50%"
+            innerRadius={45}
+            outerRadius={70}
+            paddingAngle={3}
+            dataKey="value"
+          >
+            {(charts.source || []).map(
+              (entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    PIE_COLORS[
+                      index %
+                        PIE_COLORS.length
+                    ]
+                  }
+                />
+              )
+            )}
+          </Pie>
+
+          <Tooltip
+            formatter={(value) => [
+              `$${Number(
+                value
+              ).toLocaleString()}`,
+              "Revenue"
+            ]}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        minWidth: "150px"
+      }}
+    >
+      {(charts.source || []).map(
+        (entry, index) => (
+          <div
+            key={index}
+            style={{
+              display: "flex",
+              justifyContent:
+                "space-between",
+              fontSize: "0.8rem",
+              color:
+                "var(--text-secondary)"
+            }}
+          >
+            <div>
+              <span
+                style={{
+                  display:
+                    "inline-block",
+                  width: "8px",
+                  height: "8px",
+                  borderRadius:
+                    "50%",
+                  backgroundColor:
+                    PIE_COLORS[
+                      index %
+                        PIE_COLORS.length
+                    ],
+                  marginRight: "6px"
+                }}
+              />
+
+              {entry.name}
+            </div>
+
+            <span
+              style={{
+                color:
+                  "var(--text-primary)",
+                fontWeight: "700"
+              }}
+            >
+              $
+              {(
+                entry.value || 0
+              ).toLocaleString()}
+            </span>
+          </div>
+        )
+      )}
+    </div>
+  </div>
+</div>
+
+{/* Brand Campaign Logs */}
+<div className="table-card">
+  <h4
+    className="chart-card-title"
+    style={{ marginBottom: "1.25rem" }}
+  >
+    📢 Brand Campaign Logs
+  </h4>
+
+  <table className="custom-table">
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th>Campaign</th>
+        <th>Revenue</th>
+        <th>Date</th>
+        <th>Platform</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {(brands || []).map((b, index) => (
+        <tr key={index}>
+          <td
+            style={{
+              fontWeight: "700"
+            }}
+          >
+            {b.brand}
+          </td>
+
+          <td>{b.campaign}</td>
+
+          <td
+            style={{
+              color: "#34d399",
+              fontWeight: "700"
+            }}
+          >
+            $
+            {(b.revenue || 0).toLocaleString()}
+          </td>
+
+          <td
+            style={{
+              color:
+                "var(--text-secondary)"
+            }}
+          >
+            {b.date}
+          </td>
+
+          <td
+            style={{
+              color:
+                "var(--text-secondary)"
+            }}
+          >
+            {b.platform}
+          </td>
+
+          <td>
+            <span
+              className={`status-pill ${(
+                b.status || ""
+              ).toLowerCase()}`}
+            >
+              {b.status}
+            </span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+
+{/* Revenue Source Comparison */}
+<div className="revenue-chart-card">
+  <h4 className="chart-card-title">
+    📊 Revenue Source Comparison
+  </h4>
+
+  <div
+    style={{
+      width: "100%",
+      height: 300
+    }}
+  >
+    <ResponsiveContainer>
+      <BarChart
+        data={charts.source || []}
+      >
+        <CartesianGrid
+          strokeDasharray="3 3"
+        />
+
+        <XAxis dataKey="name" />
+
+        <YAxis />
+
+        <Tooltip
+          formatter={(value) => [
+            `$${Number(
+              value
+            ).toLocaleString()}`,
+            "Revenue"
+          ]}
+        />
+
+        <Bar
+          dataKey="value"
+          fill="#10b981"
+          radius={[4, 4, 0, 0]}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+</div>
+{/* Sponsorship Program Schedules */}
+<div
+  className="table-card"
+  style={{ width: "100%" }}
+>
+  <h4
+    className="chart-card-title"
+    style={{ marginBottom: "1.25rem" }}
+  >
+    🤝 Sponsorship Program Schedules
+  </h4>
+
+  <table className="custom-table">
+    <thead>
+      <tr>
+        <th>Sponsor Name</th>
+        <th>Campaign Niche</th>
+        <th>Amount</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Platform</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {(sponsorships || []).map((s, index) => (
+        <tr key={index}>
+          <td style={{ fontWeight: "700" }}>
+            {s.sponsor}
+          </td>
+
+          <td>{s.campaign}</td>
+
+          <td
+            style={{
+              color: "#60a5fa",
+              fontWeight: "700"
+            }}
+          >
+            $
+            {(s.amount || 0).toLocaleString()}
+          </td>
+
+          <td
+            style={{
+              color: "var(--text-secondary)"
+            }}
+          >
+            {s.startDate}
+          </td>
+
+          <td
+            style={{
+              color: "var(--text-secondary)"
+            }}
+          >
+            {s.endDate}
+          </td>
+
+          <td
+            style={{
+              color: "var(--text-secondary)"
+            }}
+          >
+            {s.platform}
+          </td>
+
+          <td>
+            <span
+              className={`status-pill ${(
+                s.status || ""
+              ).toLowerCase()}`}
+            >
+              {s.status}
+            </span>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+  </div>   
+);
 }

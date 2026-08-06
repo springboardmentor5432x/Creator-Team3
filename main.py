@@ -18,7 +18,8 @@ from routers import (
     admin,
     prediction,
     hashtag,
-    agency
+    agency,
+    report
 )
 
 
@@ -85,6 +86,8 @@ app.include_router(prediction.router)
 app.include_router(hashtag.router)
 
 app.include_router(agency.router)
+
+app.include_router(report.router)
 
 
 

@@ -262,6 +262,8 @@ class Analytics(Base):
     impressions = Column(Integer, default=0)
 
     engagement_rate = Column(Float, default=0)
+    video_title = Column(String)
+    content_title = Column(String)
     
     created_at = Column(
         DateTime,
@@ -603,4 +605,39 @@ class Notification(Base):
     user = relationship(
         "User",
         back_populates="notifications"
+    )
+class ReportHistory(Base):
+
+    __tablename__ = "report_history"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id")
+    )
+
+    report_name = Column(String)
+
+    report_type = Column(String)
+
+    report_period = Column(String)
+
+    generated_date = Column(
+        DateTime,
+        default=datetime.utcnow
+    )
+
+    download_status = Column(
+        Boolean,
+        default=False
+    )
+
+    file_path = Column(String)
+
+    user = relationship(
+        "User"
     )

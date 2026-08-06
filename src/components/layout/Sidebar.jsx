@@ -39,6 +39,12 @@ export default function Sidebar() {
         <NavLink to="/campaigns" className="sidebar-link">
           📅 <span>Campaigns</span>
         </NavLink>
+        <NavLink to="/reports" className="sidebar-link">
+          📑 <span>Reports</span>
+        </NavLink>
+        <NavLink to="/notifications" className="sidebar-link">
+          🔔 <span>Notifications</span>
+        </NavLink>
         <NavLink to="/profile" className="sidebar-link">
           👤 <span>Profile</span>
         </NavLink>

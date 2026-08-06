@@ -169,5 +169,35 @@ class AudienceAggregator:
                 "saves": 32100,
                 "engagementRate": 4.85,
                 "interactionVelocity": "High (+14.2% MoM)"
-            }
+            },
+            "followerGrowth": [
+                {"date": "2026-07-01", "daily": 300, "weekly": 2100, "monthly": 9000, "total": 1200000},
+                {"date": "2026-07-08", "daily": 450, "weekly": 3150, "monthly": 12000, "total": 1212000},
+                {"date": "2026-07-15", "daily": 500, "weekly": 3500, "monthly": 15000, "total": 1227000},
+                {"date": "2026-07-22", "daily": 650, "weekly": 4550, "monthly": 19000, "total": 1246000},
+                {"date": "2026-07-29", "daily": 550, "weekly": 3850, "monthly": 22000, "total": 1254300}
+            ],
+            "activeDays": [
+                {"day": "Mon", "activity": 60},
+                {"day": "Tue", "activity": 95},
+                {"day": "Wed", "activity": 70},
+                {"day": "Thu", "activity": 100},
+                {"day": "Fri", "activity": 85},
+                {"day": "Sat", "activity": 45},
+                {"day": "Sun", "activity": 40}
+            ],
+            "reachImpressionTrends": [
+                {"date": "2026-07-01", "reach": 350000, "impressions": 600000},
+                {"date": "2026-07-08", "reach": 420000, "impressions": 720000},
+                {"date": "2026-07-15", "reach": 380000, "impressions": 650000},
+                {"date": "2026-07-22", "reach": 520000, "impressions": 900000},
+                {"date": "2026-07-29", "reach": 482000, "impressions": 843200}
+            ],
+            "engagementTrends": [
+                {"date": "2026-07-01", "likes": 40000, "comments": 2500, "shares": 1000},
+                {"date": "2026-07-08", "likes": 55000, "comments": 3200, "shares": 1400},
+                {"date": "2026-07-15", "reach": 380000, "likes": 48000, "comments": 2800, "shares": 1100},
+                {"date": "2026-07-22", "reach": 520000, "likes": 75000, "comments": 4500, "shares": 2200},
+                {"date": "2026-07-29", "reach": 482000, "likes": 68000, "comments": 4000, "shares": 1800}
+            ]
         }

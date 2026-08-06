@@ -22,10 +22,12 @@ import PlatformDashboardView from './PlatformDashboardView';
 import DebugView from './DebugView';
 import TeamWorkspaceView from './TeamWorkspaceView';
 import AudienceAnalyticsView from './AudienceAnalyticsView';
+import ReportsView from './ReportsView';
+import NotificationCenterView from '../notifications/NotificationCenterView';
 import DashboardLayout from './DashboardLayout';
 import PageTransition from './PageTransition';
-
-
+import { useTheme } from '../../context/ThemeContext';
+import HyperAIOrb from '../hyper/HyperAIOrb';
 
 import { kpiData as dummyKpiData, platformPerformance as dummyPerformance } from '../../data/dummyAnalytics';
 
@@ -35,6 +37,7 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [userRole, setUserRole] = useState('Creator');
+  const { isHyperUI } = useTheme();
   
   const [kpiData, setKpiData] = useState(dummyKpiData);
   const [platformPerformance, setPlatformPerformance] = useState(dummyPerformance);
@@ -371,8 +374,8 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
             <ContentIntelligenceView token={token} />
           ) : activeTab === 'prediction' ? (
             <MathematicalPredictionView token={token} />
-          ) : activeTab === 'settings' ? (
-            <SettingsView token={token} onAuthUpdate={onAuthUpdate} />
+          ) : activeTab === 'settings' || activeTab === 'connections' ? (
+            <SettingsView token={token} onAuthUpdate={onAuthUpdate} defaultTab={activeTab === 'connections' ? 'connections' : 'account'} />
           ) : activeTab === 'debug' ? (
             <DebugView token={token} />
           ) : activeTab === 'admin' ? (
@@ -381,6 +384,10 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
             <AICopilot token={token} />
           ) : activeTab === 'team' ? (
             <TeamWorkspaceView token={token} />
+          ) : activeTab === 'reports' ? (
+            <ReportsView token={token} />
+          ) : activeTab === 'notifications' ? (
+            <NotificationCenterView token={token} />
           ) : activeTab === 'audience' ? (
             <AudienceAnalyticsView token={token} />
           ) : (
@@ -516,6 +523,8 @@ export default function AnalyticsDashboard({ token, onLogout, onAuthUpdate }) {
           onClose={() => setShowNotifPanel(false)}
         />
       )}
+
+      {isHyperUI && <HyperAIOrb />}
     </div>
   );
 }

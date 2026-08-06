@@ -441,6 +441,44 @@ class TwitchSnapshot(Base):
     hours_watched = Column(Integer, default=0)
     streams_count = Column(Integer, default=0)
 
+class LinkedInAccount(Base):
+    __tablename__ = "linkedin_accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    linkedin_user_id = Column(String, nullable=False, index=True)  # OpenID Connect "sub"
+    name = Column(String, default="")
+    email = Column(String, default="")
+    profile_picture_url = Column(String, default="")
+    headline = Column(String, default="")
+
+    followers_count = Column(Integer, default=0)
+    connections_count = Column(Integer, default=0)
+
+    access_token = Column(String, default="")
+    refresh_token = Column(String, default="")
+    token_expires_at = Column(DateTime, nullable=True)
+    connected_status = Column(String, default="connected")  # connected, expired, disconnected
+
+    connected_since = Column(DateTime, default=datetime.utcnow)
+    last_synced_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+
+class LinkedInSnapshot(Base):
+    __tablename__ = "linkedin_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    account_id = Column(Integer, ForeignKey("linkedin_accounts.id", ondelete="CASCADE"), nullable=False)
+
+    date = Column(DateTime, default=datetime.utcnow, index=True)
+    followers_count = Column(Integer, default=0)
+    connections_count = Column(Integer, default=0)
+    post_impressions = Column(Integer, default=0)
+    profile_clicks = Column(Integer, default=0)
+    avg_engagement = Column(Float, default=0.0)
+
 class GrowthSnapshot(Base):
     __tablename__ = "growth_snapshots"
 
@@ -452,3 +490,34 @@ class GrowthSnapshot(Base):
     views = Column(Integer, default=0)
     watch_time_hours = Column(Integer, default=0)
     engagement_rate = Column(Float, default=0.0)
+
+class ReportHistory(Base):
+    __tablename__ = "report_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    
+    report_name = Column(String, nullable=False)
+    report_type = Column(String, nullable=False)  # "Weekly", "Monthly", "Quarterly", "Annual", "Custom"
+    format = Column(String, nullable=False)       # "PDF", "Excel"
+    report_period = Column(String, nullable=False) # e.g. "Jul 10 - Jul 17, 2026"
+    
+    file_path = Column(String, nullable=False)    # local disk path for downloaded reports
+    generated_date = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
+
+class ReportSchedule(Base):
+    __tablename__ = "report_schedules"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    
+    frequency = Column(String, nullable=False) # "weekly", "monthly"
+    format = Column(String, default="PDF")
+    email_delivery = Column(Boolean, default=True)
+    
+    next_run_date = Column(DateTime, nullable=False)
+    
+    user = relationship("User")
+

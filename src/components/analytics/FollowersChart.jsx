@@ -1,6 +1,8 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { monthlyFollowers as defaultData } from '../../data/dummyAnalytics';
+import { useTheme } from '../../context/ThemeContext';
+import HyperLineChart from '../hyper/charts/HyperLineChart';
 
 // Helper function to format count (e.g., 1200000 -> 1.2M)
 const formatNumber = (num) => {
@@ -68,8 +70,10 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function FollowersChart({ data = defaultData }) {
+  const { isHyperUI } = useTheme();
+
   return (
-    <div className="chart-card">
+    <div className={isHyperUI ? '' : 'chart-card'}>
       <style>{`
         .chart-card {
           background: var(--bg-secondary);
@@ -109,58 +113,88 @@ export default function FollowersChart({ data = defaultData }) {
           width: 100%;
           height: 300px;
         }
+        .recharts-legend-wrapper {
+          padding-top: 10px;
+        }
       `}</style>
 
-      <div className="chart-header">
-        <div className="chart-title-wrapper">
-          <h3 className="chart-title">Follower Growth</h3>
-          <p className="chart-subtitle">Cumulative monthly growth trajectory</p>
-        </div>
-      </div>
-
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart
+      {isHyperUI ? (
+        <div style={{ padding: '24px' }}>
+          <div className="chart-header" style={{ marginBottom: '24px' }}>
+            <div className="chart-title-wrapper">
+              <h3 className="chart-title" style={{ fontSize: '18px', color: '#fff' }}>Audience Growth</h3>
+              <p className="chart-subtitle" style={{ color: '#94a3b8' }}>Cumulative follower count</p>
+            </div>
+          </div>
+          <HyperLineChart 
             data={data}
-            margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id="followerColor" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
-            <XAxis 
-              dataKey="month" 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false} 
-              axisLine={false}
-              dy={10}
-            />
-            <YAxis 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false} 
-              axisLine={false}
-              tickFormatter={formatNumber}
-              domain={['dataMin - 50000', 'auto']}
-              dx={-5}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              name="Followers"
-              dataKey="count"
-              stroke="var(--accent-primary)"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#followerColor)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+            height={300}
+            lines={[
+              { dataKey: 'count', color: '#3b82f6', strokeWidth: 3 }
+            ]}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="chart-header">
+            <div className="chart-title-wrapper">
+              <h3 className="chart-title">Audience Growth</h3>
+              <p className="chart-subtitle">Cumulative follower count</p>
+            </div>
+          </div>
+
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                 data={data}
+                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#64748b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  dy={10}
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tickFormatter={formatNumber}
+                  dx={-5}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36} 
+                  iconType="circle" 
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }}
+                />
+                <Area 
+                  type="monotone" 
+                  name="Followers"
+                  dataKey="total" 
+                  stroke="var(--accent-primary)" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorTotal)" 
+                  activeDot={{ r: 6, strokeWidth: 0, fill: 'var(--accent-primary)' }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </div>
   );
 }

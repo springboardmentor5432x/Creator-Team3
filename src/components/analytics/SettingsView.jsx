@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../../context/ThemeContext';
+import HyperWarningModal from '../hyper/HyperWarningModal';
+import HyperActivationSequence from '../hyper/HyperActivationSequence';
+import HyperButton from '../hyper/primitives/HyperButton';
 
 const themesList = [
   { id: 'midnight', name: 'Slate Midnight', accent: '#3b82f6', bg: '#0b0f19', colors: ['#0b0f19', '#1e293b', '#3b82f6'] },
@@ -9,10 +13,15 @@ const themesList = [
   { id: 'light', name: 'Snow Alabaster', accent: '#2563eb', bg: '#f1f5f9', colors: ['#f1f5f9', '#ffffff', '#2563eb'] }
 ];
 
-export default function SettingsView({ token, onThemeChange, currentTheme, onAuthUpdate }) {
-  const [activeSubTab, setActiveSubTab] = useState('account');
+export default function SettingsView({ token, onThemeChange, currentTheme, onAuthUpdate, defaultTab = 'account' }) {
+  const [activeSubTab, setActiveSubTab] = useState(defaultTab);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  
+  // HyperUI Context & State
+  const { isHyperUI, setHyperUI, performanceMode, setPerfMode } = useTheme();
+  const [showHyperModal, setShowHyperModal] = useState(false);
+  const [isActivatingHyper, setIsActivatingHyper] = useState(false);
 
   // Account form state
   const [username, setUsername] = useState('');
@@ -481,9 +490,9 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <button type="submit" className="save-btn" disabled={loading}>
+              <HyperButton onClick={handleSaveAccount} disabled={loading}>
                 {loading ? 'Saving...' : 'Save Account Settings'}
-              </button>
+              </HyperButton>
             </form>
           </div>
         )}
@@ -504,7 +513,6 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   <option value="YouTube">YouTube</option>
                   <option value="Instagram">Instagram</option>
                   <option value="TikTok">TikTok</option>
-                  <option value="Twitch">Twitch</option>
                 </select>
               </div>
               <div className="settings-group">
@@ -545,9 +553,9 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   </select>
                 </div>
               </div>
-              <button type="submit" className="save-btn" disabled={loading}>
+              <HyperButton onClick={handleSaveProfile} disabled={loading}>
                 {loading ? 'Saving...' : 'Save Profile Settings'}
-              </button>
+              </HyperButton>
             </form>
           </div>
         )}
@@ -577,6 +585,68 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                 </div>
               ))}
             </div>
+
+            {/* HyperUI Section */}
+            <div style={{ marginTop: 'var(--space-8)', padding: 'var(--space-6)', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-xl)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    HyperUI (Experimental)
+                  </h3>
+                  <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted)', fontSize: 'var(--text-sm)', maxWidth: '500px', lineHeight: 1.5 }}>
+                    Transform your dashboard into an immersive, GPU-accelerated 3D environment with spatial audio, dynamic lighting, and particle physics. 
+                  </p>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    if (isHyperUI) {
+                      setHyperUI(false);
+                    } else {
+                      setShowHyperModal(true);
+                    }
+                  }}
+                  style={{
+                    background: isHyperUI ? 'rgba(239, 68, 68, 0.1)' : 'var(--accent-primary)',
+                    color: isHyperUI ? '#ef4444' : 'white',
+                    border: isHyperUI ? '1px solid rgba(239, 68, 68, 0.3)' : 'none',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isHyperUI ? 'Disable HyperUI' : 'Enable HyperUI'}
+                </button>
+              </div>
+
+              {isHyperUI && (
+                <div style={{ marginTop: 'var(--space-6)', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 'var(--space-4)' }}>
+                  <h4 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>Performance Mode</h4>
+                  <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+                    {['ultra', 'balanced', 'battery'].map(mode => (
+                      <button
+                        key={mode}
+                        onClick={() => setPerfMode(mode)}
+                        style={{
+                          background: performanceMode === mode ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
+                          color: performanceMode === mode ? 'white' : 'var(--text-muted)',
+                          border: '1px solid ' + (performanceMode === mode ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)'),
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          textTransform: 'capitalize',
+                          cursor: 'pointer',
+                          fontSize: 'var(--text-xs)'
+                        }}
+                      >
+                        {mode}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -585,6 +655,24 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
           <ConnectedAccountsTab token={token} />
         )}
       </div>
+
+      <HyperWarningModal
+        isOpen={showHyperModal}
+        onConfirm={() => {
+          setShowHyperModal(false);
+          setIsActivatingHyper(true);
+        }}
+        onCancel={() => setShowHyperModal(false)}
+      />
+
+      {isActivatingHyper && (
+        <HyperActivationSequence
+          onComplete={() => {
+            setIsActivatingHyper(false);
+            setHyperUI(true);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -600,9 +688,156 @@ function ConnectedAccountsTab({ token }) {
   const [igResult, setIgResult] = useState(null);
   const [igLoading, setIgLoading] = useState(false);
   const [igError, setIgError] = useState('');
+  const [igManualMode, setIgManualMode] = useState(false);
+  const [igManualName, setIgManualName] = useState('');
+  const [igManualFollowers, setIgManualFollowers] = useState('');
   
   const [connLoading, setConnLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
+
+
+  const handleOAuthConnect = async (platform) => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/auth/${platform}/connect`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        setFeedback({ type: 'error', text: data.error || `Failed to connect to ${platform}` });
+      }
+    } catch (err) {
+      setFeedback({ type: 'error', text: err.message });
+    }
+  };
+
+
+  const handleFetchLinkedIn = async (e) => {
+    e.preventDefault();
+    setLiResult(null);
+    setLiError('');
+    setLiManualMode(false);
+    setLiLoading(true);
+    setFeedback({ type: '', text: '' });
+
+    try {
+      const cleanHandle = liHandle.replace('@', '').trim();
+      const res = await fetch(`http://127.0.0.1:8000/api/social/linkedin/scrape/${encodeURIComponent(cleanHandle)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        // LinkedIn blocked the automated lookup - drop into manual entry instead of just failing
+        setLiManualMode(true);
+        setLiManualName(cleanHandle);
+        throw new Error(data.detail || 'LinkedIn blocked this lookup.');
+      }
+      setLiResult(data);
+    } catch (err) {
+      setLiError(err.message);
+    } finally {
+      setLiLoading(false);
+    }
+  };
+
+  const handleSaveLinkedInManual = () => {
+    if (!liManualName.trim()) {
+      setLiError('Enter an account name first.');
+      return;
+    }
+    handleSaveConnection('LinkedIn', liManualName.trim(), liManualFollowers || 0);
+    setLiManualMode(false);
+    setLiManualFollowers('');
+  };
+
+  // Twitter / X state - same query-by-handle + manual-fallback pattern
+  const [twHandle, setTwHandle] = useState('elonmusk');
+  const [twResult, setTwResult] = useState(null);
+  const [twLoading, setTwLoading] = useState(false);
+  const [twError, setTwError] = useState('');
+  const [twManualMode, setTwManualMode] = useState(false);
+  const [twManualName, setTwManualName] = useState('');
+  const [twManualFollowers, setTwManualFollowers] = useState('');
+
+  const handleFetchTwitter = async (e) => {
+    e.preventDefault();
+    setTwResult(null);
+    setTwError('');
+    setTwManualMode(false);
+    setTwLoading(true);
+    setFeedback({ type: '', text: '' });
+
+    try {
+      const cleanHandle = twHandle.replace('@', '').trim();
+      const res = await fetch(`http://127.0.0.1:8000/api/social/twitter/scrape/${encodeURIComponent(cleanHandle)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        // X blocked the automated lookup - drop into manual entry instead of just failing
+        setTwManualMode(true);
+        setTwManualName(cleanHandle);
+        throw new Error(data.detail || 'X / Twitter blocked this lookup.');
+      }
+      setTwResult(data);
+    } catch (err) {
+      setTwError(err.message);
+    } finally {
+      setTwLoading(false);
+    }
+  };
+
+  const handleSaveTwitterManual = () => {
+    if (!twManualName.trim()) {
+      setTwError('Enter an account name first.');
+      return;
+    }
+    handleSaveConnection('Twitter', twManualName.trim(), twManualFollowers || 0);
+    setTwManualMode(false);
+    setTwManualFollowers('');
+  };
+
+  // Facebook state - same query-by-handle + manual-fallback pattern
+  const [fbHandle, setFbHandle] = useState('nike');
+  const [fbResult, setFbResult] = useState(null);
+  const [fbLoading, setFbLoading] = useState(false);
+  const [fbError, setFbError] = useState('');
+  const [fbManualMode, setFbManualMode] = useState(false);
+  const [fbManualName, setFbManualName] = useState('');
+  const [fbManualFollowers, setFbManualFollowers] = useState('');
+
+  const handleFetchFacebook = async (e) => {
+    e.preventDefault();
+    setFbResult(null);
+    setFbError('');
+    setFbManualMode(false);
+    setFbLoading(true);
+    setFeedback({ type: '', text: '' });
+
+    try {
+      const cleanHandle = fbHandle.replace('@', '').trim();
+      const res = await fetch(`http://127.0.0.1:8000/api/social/facebook/scrape/${encodeURIComponent(cleanHandle)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        // Facebook blocked the automated lookup - drop into manual entry instead of just failing
+        setFbManualMode(true);
+        setFbManualName(cleanHandle);
+        throw new Error(data.detail || 'Facebook blocked this lookup.');
+      }
+      setFbResult(data);
+    } catch (err) {
+      setFbError(err.message);
+    } finally {
+      setFbLoading(false);
+    }
+  };
+
+  const handleSaveFacebookManual = () => {
+    if (!fbManualName.trim()) {
+      setFbError('Enter an account name first.');
+      return;
+    }
+    handleSaveConnection('Facebook', fbManualName.trim(), fbManualFollowers || 0);
+    setFbManualMode(false);
+    setFbManualFollowers('');
+  };
 
   const fetchConnectedAccounts = async () => {
     try {
@@ -652,6 +887,7 @@ function ConnectedAccountsTab({ token }) {
     e.preventDefault();
     setIgResult(null);
     setIgError('');
+    setIgManualMode(false);
     setIgLoading(true);
     setFeedback({ type: '', text: '' });
 
@@ -660,9 +896,13 @@ function ConnectedAccountsTab({ token }) {
       const res = await fetch(`http://127.0.0.1:8000/api/social/instagram/scrape/${cleanHandle}`);
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.detail || 'Failed to fetch Instagram stats');
+        setIgManualMode(true);
+        setIgManualName(cleanHandle);
+        throw new Error(data.detail || data.message || 'Instagram blocked this lookup.');
       }
       if (data.error) {
+        setIgManualMode(true);
+        setIgManualName(cleanHandle);
         throw new Error(data.error);
       }
       setIgResult(data);
@@ -671,6 +911,16 @@ function ConnectedAccountsTab({ token }) {
     } finally {
       setIgLoading(false);
     }
+  };
+
+  const handleSaveInstagramManual = () => {
+    if (!igManualName.trim()) {
+      setIgError('Enter an account name first.');
+      return;
+    }
+    handleSaveConnection('Instagram', igManualName.trim(), igManualFollowers || 0);
+    setIgManualMode(false);
+    setIgManualFollowers('');
   };
 
   const handleSaveConnection = async (platform, name, followers, cid = '') => {
@@ -891,18 +1141,14 @@ function ConnectedAccountsTab({ token }) {
           </p>
           
           <form onSubmit={handleFetchInstagram} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <div style={{ position: 'relative', width: '300px' }}>
-              <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-secondary)' }}>@</span>
-              <input 
-                type="text" 
-                className="settings-input"
-                style={{ width: '100%', paddingLeft: '30px' }}
-                placeholder="instagram_handle"
-                value={igHandle}
-                onChange={(e) => setIgHandle(e.target.value)}
-                required
-              />
-            </div>
+            <input 
+              type="text" 
+              className="settings-input" 
+              placeholder="e.g. cristiano" 
+              value={igHandle}
+              onChange={(e) => setIgHandle(e.target.value)}
+              required
+            />
             <button 
               type="submit" 
               className="save-btn" 
@@ -915,13 +1161,13 @@ function ConnectedAccountsTab({ token }) {
 
           {igError && (
             <div className="settings-banner error" style={{ margin: '1rem 0 0 0' }}>
-              Instagram API Error: {igError}
+              Instagram Scraper Error: {igError}
             </div>
           )}
 
-          {igResult && (
+          {igManualMode && (
             <div style={{
-              background: 'rgba(255,255,255,0.02)',
+              background: 'rgba(219, 39, 119, 0.1)',
               border: '1px solid rgba(219, 39, 119, 0.3)',
               borderRadius: '12px',
               padding: '1.25rem',
@@ -931,20 +1177,60 @@ function ConnectedAccountsTab({ token }) {
               gap: '12px'
             }}>
               <h4 style={{ margin: 0, color: '#db2777', fontSize: '0.95rem' }}>
-                Profile Found: @{igResult.username}
+                Manual Entry Required
+              </h4>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                Instagram has blocked the automated lookup for <strong>{igManualName}</strong>. Please enter your follower count manually to bind this account.
+              </p>
+              
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginTop: '0.5rem' }}>
+                <input 
+                  type="number" 
+                  className="settings-input" 
+                  placeholder="Follower Count (e.g. 10500)" 
+                  value={igManualFollowers}
+                  onChange={(e) => setIgManualFollowers(e.target.value)}
+                  style={{ maxWidth: '200px' }}
+                />
+                <button 
+                  type="button"
+                  className="save-btn"
+                  style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', margin: 0 }}
+                  disabled={connLoading}
+                  onClick={handleSaveInstagramManual}
+                >
+                  {connLoading ? 'Linking...' : 'Confirm Manual Bind ➔'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {igResult && !igManualMode && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <h4 style={{ margin: 0, color: '#db2777', fontSize: '0.95rem' }}>
+                Profile Found: {igResult.username || igResult.account_name}
               </h4>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
                 <div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Followers</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{igResult.followers.toLocaleString()}</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{(igResult.followers || 0).toLocaleString()}</div>
                 </div>
                 <div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Following</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{igResult.following.toLocaleString()}</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{(igResult.following || igResult.follows_count || 0).toLocaleString()}</div>
                 </div>
                 <div>
                   <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Posts</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{igResult.posts.toLocaleString()}</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{(igResult.posts || igResult.media_count || 0).toLocaleString()}</div>
                 </div>
               </div>
               <button 
@@ -952,10 +1238,184 @@ function ConnectedAccountsTab({ token }) {
                 className="save-btn"
                 style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', alignSelf: 'flex-start' }}
                 disabled={connLoading}
-                onClick={() => handleSaveConnection('Instagram', `@${igResult.username}`, igResult.followers)}
+                onClick={() => handleSaveConnection('Instagram', igResult.username || igResult.account_name, igResult.followers)}
               >
                 {connLoading ? 'Linking...' : 'Confirm Connection ➔'}
               </button>
+            </div>
+          )}
+        </div>
+
+        {/* LinkedIn Connection Card */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            💼 Connect LinkedIn Company Page
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Fetch live follower stats from a public LinkedIn Company Page and bind them to your dashboard.
+            LinkedIn sometimes blocks automated lookups — if that happens you can enter your stats manually instead.
+          </p>
+
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <button
+              type="button"
+              className="save-btn"
+              style={{ padding: '10px 18px', margin: 0, background: '#0a66c2' }}
+              onClick={() => handleOAuthConnect('linkedin')}
+            >
+              Connect with LinkedIn OAuth
+            </button>
+          </div>
+
+
+        </div>
+
+        {/* Twitter / X Connection Card */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🐦 Connect X / Twitter Profile
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Fetch a public follower count from X and bind it to your dashboard.
+            X retired its free public follower API, so this often gets blocked — enter your stats manually if it does.
+          </p>
+
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <button
+              type="button"
+              className="save-btn"
+              style={{ padding: '10px 18px', margin: 0, background: '#1da1f2' }}
+              onClick={() => handleOAuthConnect('twitter')}
+            >
+              Connect with X OAuth
+            </button>
+          </div>
+
+
+        </div>
+
+        {/* Facebook Connection Card */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            📘 Connect Facebook Page
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Fetch a public follower/like count from a Facebook Page and bind it to your dashboard.
+            Facebook gates most content behind a login wall — this only has a chance on public Pages, and often needs the manual fallback.
+          </p>
+
+          <form onSubmit={handleFetchFacebook} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <input
+              type="text"
+              className="settings-input"
+              style={{ maxWidth: '300px' }}
+              placeholder="Page handle, e.g. nike"
+              value={fbHandle}
+              onChange={(e) => setFbHandle(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="save-btn"
+              style={{ padding: '10px 18px', margin: 0, background: '#1877f2' }}
+              disabled={fbLoading}
+            >
+              {fbLoading ? 'Querying...' : 'Query Profile'}
+            </button>
+          </form>
+
+          {fbError && (
+            <div className="settings-banner error" style={{ margin: '1rem 0 0 0' }}>
+              Facebook Lookup: {fbError}
+            </div>
+          )}
+
+          {fbResult && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(24, 119, 242, 0.3)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <h4 style={{ margin: 0, color: '#1877f2', fontSize: '0.95rem' }}>
+                Page Found: {fbResult.name}
+              </h4>
+              <div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Followers</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{fbResult.followers.toLocaleString()}</div>
+              </div>
+              <button
+                type="button"
+                className="save-btn"
+                style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', alignSelf: 'flex-start' }}
+                disabled={connLoading}
+                onClick={() => handleSaveConnection('Facebook', fbResult.name, fbResult.followers)}
+              >
+                {connLoading ? 'Linking...' : 'Confirm Connection ➔'}
+              </button>
+            </div>
+          )}
+
+          {fbManualMode && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Automated lookup was blocked — enter your stats manually
+              </h4>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  className="settings-input"
+                  style={{ maxWidth: '220px' }}
+                  placeholder="Page name"
+                  value={fbManualName}
+                  onChange={(e) => setFbManualName(e.target.value)}
+                />
+                <input
+                  type="number"
+                  className="settings-input"
+                  style={{ maxWidth: '160px' }}
+                  placeholder="Followers"
+                  value={fbManualFollowers}
+                  onChange={(e) => setFbManualFollowers(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="save-btn"
+                  style={{ padding: '10px 18px', margin: 0, background: '#22c55e' }}
+                  disabled={connLoading}
+                  onClick={handleSaveFacebookManual}
+                >
+                  {connLoading ? 'Linking...' : 'Save Manually ➔'}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -974,14 +1434,6 @@ function ConnectedAccountsTab({ token }) {
             Simulate connections for other social accounts to verify multi-platform revenue calculations and audience charts.
           </p>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button 
-              type="button" 
-              className="save-btn"
-              style={{ background: '#0a66c2' }}
-              onClick={() => handleSaveConnection('LinkedIn', 'linkedin_profile', 50000)}
-            >
-              Connect LinkedIn Account
-            </button>
             <button 
               type="button" 
               className="save-btn"

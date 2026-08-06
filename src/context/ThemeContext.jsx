@@ -14,6 +14,8 @@ export const THEMES = [
 
 export const ThemeProvider = ({ children, token }) => {
   const [theme, setThemeState] = useState(() => localStorage.getItem('creatoriq_theme') || 'midnight');
+  const [isHyperUI, setIsHyperUI] = useState(() => localStorage.getItem('creatoriq_hyperui') === 'true');
+  const [performanceMode, setPerformanceMode] = useState(() => localStorage.getItem('creatoriq_perf') || 'ultra'); // ultra, balanced, battery
 
   const [chartColors, setChartColors] = useState({
     c1: '#3b82f6',
@@ -71,8 +73,24 @@ export const ThemeProvider = ({ children, token }) => {
     }
   };
 
+  const setHyperUI = (val) => {
+    setIsHyperUI(val);
+    localStorage.setItem('creatoriq_hyperui', val);
+  };
+
+  const setPerfMode = (val) => {
+    setPerformanceMode(val);
+    localStorage.setItem('creatoriq_perf', val);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, themes: THEMES, chartColors }}>
+    <ThemeContext.Provider value={{ 
+      theme, setTheme, 
+      themes: THEMES, 
+      chartColors,
+      isHyperUI, setHyperUI,
+      performanceMode, setPerfMode
+    }}>
       {children}
     </ThemeContext.Provider>
   );

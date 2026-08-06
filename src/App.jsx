@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import AuthPage from './components/auth/AuthPage';
+import OAuthCallback from './components/auth/OAuthCallback';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import HyperUIBackground from './components/hyper/HyperUIBackground';
+import HyperCursor from './components/hyper/HyperCursor';
 import './App.css';
 
 function AppContent() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const { isHyperUI } = useTheme();
 
   const handleAuthSuccess = (newToken) => {
     localStorage.setItem('token', newToken);
@@ -18,8 +22,12 @@ function AppContent() {
   };
 
   return (
-    <div className="app-theme-wrapper" style={{ minHeight: '100vh', backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {token ? (
+    <div className="app-theme-wrapper" style={{ minHeight: '100vh', backgroundColor: isHyperUI ? 'transparent' : 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      {isHyperUI && <HyperUIBackground />}
+      {isHyperUI && <HyperCursor />}
+      {window.location.pathname === '/oauth/callback' ? (
+        <OAuthCallback />
+      ) : token ? (
         <AnalyticsDashboard 
           token={token} 
           onLogout={handleLogout} 

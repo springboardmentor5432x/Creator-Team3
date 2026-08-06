@@ -1,8 +1,12 @@
 import React from 'react';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import HyperCard from '../hyper/HyperCard';
 
 export default function MetricCard({ title, value, change, changeStatus, icon, sparkData }) {
+  const { isHyperUI } = useTheme();
+
   const points = sparkData || [
     { v: 30 }, { v: 45 }, { v: 35 }, { v: 60 }, { v: 50 }, { v: 75 }, { v: 90 }
   ];
@@ -10,8 +14,8 @@ export default function MetricCard({ title, value, change, changeStatus, icon, s
   const isPositive = changeStatus !== 'negative';
   const gradientId = `spark-${(title || '').replace(/\s+/g, '-')}`;
 
-  return (
-    <div className="mc-card">
+  const InnerContent = () => (
+    <>
       <style>{`
         .mc-card {
           background: var(--bg-card);
@@ -27,6 +31,7 @@ export default function MetricCard({ title, value, change, changeStatus, icon, s
           transition: all var(--duration-normal) var(--ease-default);
           position: relative;
           overflow: hidden;
+          height: 100%;
         }
 
         .mc-card::after {
@@ -98,53 +103,75 @@ export default function MetricCard({ title, value, change, changeStatus, icon, s
         }
 
         .mc-change.negative {
-          background: var(--error-subtle);
-          color: var(--error);
+          background: var(--danger-subtle);
+          color: var(--danger);
         }
 
         .mc-spark {
-          height: 32px;
-          width: 100%;
-          margin-top: var(--space-1);
+          height: 48px;
+          margin-top: auto;
+          margin-left: calc(var(--space-5) * -1);
+          margin-right: calc(var(--space-5) * -1);
+          margin-bottom: calc(var(--space-5) * -1);
+        }
+        
+        .hyper-inner {
+          padding: var(--space-5);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
+          height: 100%;
+          position: relative;
+          z-index: 2;
         }
       `}</style>
 
-      <div className="mc-header">
-        <span className="mc-label">{title}</span>
-      </div>
-
-      <div className="mc-value-row">
-        <span className="mc-value">{value}</span>
-        {change !== undefined && change !== null && (
+      <div className={isHyperUI ? "hyper-inner" : "mc-card"}>
+        <div className="mc-header">
+          <span className="mc-label">{title}</span>
+          {icon && <span style={{ color: 'var(--text-muted)' }}>{icon}</span>}
+        </div>
+        
+        <div className="mc-value-row">
+          <span className="mc-value">{value}</span>
           <span className={`mc-change ${isPositive ? 'positive' : 'negative'}`}>
-            {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            {Math.abs(change)}%
+            {isPositive ? <TrendingUp size={12} strokeWidth={3} /> : <TrendingDown size={12} strokeWidth={3} />}
+            {change}
           </span>
-        )}
-      </div>
+        </div>
 
-      <div className="mc-spark">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={points}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={isPositive ? 'var(--success)' : 'var(--error)'} stopOpacity={0.15}/>
-                <stop offset="95%" stopColor={isPositive ? 'var(--success)' : 'var(--error)'} stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="v"
-              stroke={isPositive ? 'var(--success)' : 'var(--error)'}
-              strokeWidth={1.5}
-              fillOpacity={1}
-              fill={`url(#${gradientId})`}
-              dot={false}
-              animationDuration={800}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <div className="mc-spark">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={points} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={isPositive ? 'var(--success)' : 'var(--danger)'} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={isPositive ? 'var(--success)' : 'var(--danger)'} stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <Area 
+                type="monotone" 
+                dataKey="v" 
+                stroke={isPositive ? 'var(--success)' : 'var(--danger)'} 
+                strokeWidth={2}
+                fillOpacity={1} 
+                fill={`url(#${gradientId})`} 
+                isAnimationActive={!isHyperUI} // HyperUI handles its own physics usually, but recharts animations can conflict
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-    </div>
+    </>
   );
+
+  if (isHyperUI) {
+    return (
+      <HyperCard style={{ height: '100%' }}>
+        <InnerContent />
+      </HyperCard>
+    );
+  }
+
+  return <InnerContent />;
 }

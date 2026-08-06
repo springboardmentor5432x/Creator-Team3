@@ -1,6 +1,8 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { platformPerformance as defaultData } from '../../data/dummyAnalytics';
+import { useTheme } from '../../context/ThemeContext';
+import HyperBarChart from '../hyper/charts/HyperBarChart';
 
 // Helper function to format values on Y axis (e.g., 500000 -> 500K)
 const formatNumber = (num) => {
@@ -64,8 +66,10 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function EngagementBarChart({ data = defaultData }) {
+  const { isHyperUI } = useTheme();
+
   return (
-    <div className="chart-card">
+    <div className={isHyperUI ? '' : 'chart-card'}>
       <style>{`
         .chart-card {
           background: var(--bg-secondary);
@@ -110,66 +114,89 @@ export default function EngagementBarChart({ data = defaultData }) {
         }
       `}</style>
 
-      <div className="chart-header">
-        <div className="chart-title-wrapper">
-          <h3 className="chart-title">Engagement Breakdowns</h3>
-          <p className="chart-subtitle">Likes, comments, and shares by channel</p>
-        </div>
-      </div>
-
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
+      {isHyperUI ? (
+        <div style={{ padding: '24px' }}>
+          <div className="chart-header" style={{ marginBottom: '24px' }}>
+            <div className="chart-title-wrapper">
+              <h3 className="chart-title" style={{ fontSize: '18px', color: '#fff' }}>Engagement Breakdowns</h3>
+              <p className="chart-subtitle" style={{ color: '#94a3b8' }}>Likes, comments, and shares by channel</p>
+            </div>
+          </div>
+          <HyperBarChart 
             data={data}
-            margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            barGap={6}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
-            <XAxis 
-              dataKey="platform" 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false} 
-              axisLine={false}
-              dy={10}
-            />
-            <YAxis 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false} 
-              axisLine={false}
-              tickFormatter={formatNumber}
-              dx={-5}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="bottom" 
-              height={36} 
-              iconType="circle" 
-              iconSize={8}
-              wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }}
-            />
-            <Bar 
-              name="Likes" 
-              dataKey="likes" 
-              fill="var(--accent-secondary)" 
-              radius={[4, 4, 0, 0]} 
-            />
-            <Bar 
-              name="Comments" 
-              dataKey="comments" 
-              fill="var(--accent-primary)" 
-              radius={[4, 4, 0, 0]} 
-            />
-            <Bar 
-              name="Shares" 
-              dataKey="shares" 
-              fill="#10b981" 
-              radius={[4, 4, 0, 0]} 
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+            labelKey="platform"
+            height={300}
+            bars={[
+              { dataKey: 'likes', color: '#8b5cf6' },
+              { dataKey: 'comments', color: '#3b82f6' },
+              { dataKey: 'shares', color: '#10b981' }
+            ]}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="chart-header">
+            <div className="chart-title-wrapper">
+              <h3 className="chart-title">Engagement Breakdowns</h3>
+              <p className="chart-subtitle">Likes, comments, and shares by channel</p>
+            </div>
+          </div>
+
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                barGap={6}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
+                <XAxis 
+                  dataKey="platform" 
+                  stroke="#64748b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  dy={10}
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tickFormatter={formatNumber}
+                  dx={-5}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36} 
+                  iconType="circle" 
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }}
+                />
+                <Bar 
+                  name="Likes" 
+                  dataKey="likes" 
+                  fill="var(--accent-secondary)" 
+                  radius={[4, 4, 0, 0]} 
+                />
+                <Bar 
+                  name="Comments" 
+                  dataKey="comments" 
+                  fill="var(--accent-primary)" 
+                  radius={[4, 4, 0, 0]} 
+                />
+                <Bar 
+                  name="Shares" 
+                  dataKey="shares" 
+                  fill="#10b981" 
+                  radius={[4, 4, 0, 0]} 
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { monthlyViews as defaultData } from '../../data/dummyAnalytics';
+import { useTheme } from '../../context/ThemeContext';
+import HyperLineChart from '../hyper/charts/HyperLineChart';
 
 // Helper function to format views count (e.g., 600000 -> 600K)
 const formatNumber = (num) => {
@@ -64,8 +66,10 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function ViewsChart({ data = defaultData }) {
+  const { isHyperUI } = useTheme();
+
   return (
-    <div className="chart-card">
+    <div className={isHyperUI ? '' : 'chart-card'}>
       <style>{`
         .chart-card {
           background: var(--bg-secondary);
@@ -110,65 +114,86 @@ export default function ViewsChart({ data = defaultData }) {
         }
       `}</style>
 
-      <div className="chart-header">
-        <div className="chart-title-wrapper">
-          <h3 className="chart-title">Views Trend</h3>
-          <p className="chart-subtitle">Monthly views & viewer reactions</p>
+      {isHyperUI ? (
+        <div style={{ padding: '24px' }}>
+          <div className="chart-header" style={{ marginBottom: '24px' }}>
+            <div className="chart-title-wrapper">
+              <h3 className="chart-title" style={{ fontSize: '18px', color: '#fff' }}>Views Trend</h3>
+              <p className="chart-subtitle" style={{ color: '#94a3b8' }}>Monthly views & viewer reactions</p>
+            </div>
+          </div>
+          <HyperLineChart 
+            data={data}
+            height={300}
+            lines={[
+              { dataKey: 'views', color: '#3b82f6', strokeWidth: 3 },
+              { dataKey: 'likes', color: '#8b5cf6', strokeWidth: 2 }
+            ]}
+          />
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="chart-header">
+            <div className="chart-title-wrapper">
+              <h3 className="chart-title">Views Trend</h3>
+              <p className="chart-subtitle">Monthly views & viewer reactions</p>
+            </div>
+          </div>
 
-      <div className="chart-container">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-             data={data}
-             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
-            <XAxis 
-              dataKey="month" 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false} 
-              axisLine={false}
-              dy={10}
-            />
-            <YAxis 
-              stroke="#64748b" 
-              fontSize={11} 
-              tickLine={false} 
-              axisLine={false}
-              tickFormatter={formatNumber}
-              dx={-5}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              verticalAlign="bottom" 
-              height={36} 
-              iconType="circle" 
-              iconSize={8}
-              wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }}
-            />
-            <Line
-              type="monotone"
-              name="Views"
-              dataKey="views"
-              stroke="var(--accent-primary)"
-              strokeWidth={3}
-              dot={{ stroke: 'var(--accent-primary)', strokeWidth: 1, r: 3, fill: '#1e293b' }}
-              activeDot={{ r: 6, strokeWidth: 0, fill: 'var(--accent-primary)' }}
-            />
-            <Line
-              type="monotone"
-              name="Likes"
-              dataKey="likes"
-              stroke="var(--accent-secondary)"
-              strokeWidth={2}
-              dot={{ stroke: 'var(--accent-secondary)', strokeWidth: 1, r: 2, fill: '#1e293b' }}
-              activeDot={{ r: 4, strokeWidth: 0, fill: 'var(--accent-secondary)' }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                 data={data}
+                 margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--grid-color)" vertical={false} />
+                <XAxis 
+                  dataKey="month" 
+                  stroke="#64748b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  dy={10}
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tickFormatter={formatNumber}
+                  dx={-5}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={36} 
+                  iconType="circle" 
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: '12px', color: 'var(--text-secondary)' }}
+                />
+                <Line
+                  type="monotone"
+                  name="Views"
+                  dataKey="views"
+                  stroke="var(--accent-primary)"
+                  strokeWidth={3}
+                  dot={{ stroke: 'var(--accent-primary)', strokeWidth: 1, r: 3, fill: '#1e293b' }}
+                  activeDot={{ r: 6, strokeWidth: 0, fill: 'var(--accent-primary)' }}
+                />
+                <Line
+                  type="monotone"
+                  name="Likes"
+                  dataKey="likes"
+                  stroke="var(--accent-secondary)"
+                  strokeWidth={2}
+                  dot={{ stroke: 'var(--accent-secondary)', strokeWidth: 1, r: 2, fill: '#1e293b' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: 'var(--accent-secondary)' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </>
+      )}
     </div>
   );
 }

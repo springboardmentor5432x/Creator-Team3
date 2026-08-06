@@ -9,8 +9,36 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { useTheme } from '../../context/ThemeContext';
+import HyperLineChart from '../hyper/charts/HyperLineChart';
 
 export default function GrowthMonitoringChart({ data }) {
+  const { isHyperUI } = useTheme();
+
+  if (isHyperUI) {
+    return (
+      <div className="p-5">
+        <div style={{ marginBottom: '24px' }}>
+          <h3 className="text-lg font-semibold text-white mb-1" style={{ fontSize: '18px' }}>Growth Monitoring</h3>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>Multi-metric trajectory over time</p>
+        </div>
+        <HyperLineChart 
+          data={data}
+          height={380}
+          lines={[
+            { dataKey: 'followers', color: '#3b82f6', strokeWidth: 2 },
+            { dataKey: 'subscribers', color: '#10b981', strokeWidth: 2 },
+            { dataKey: 'views', color: '#f59e0b', strokeWidth: 2 },
+            { dataKey: 'watchTime', color: '#8b5cf6', strokeWidth: 2 },
+            { dataKey: 'revenue', color: '#ef4444', strokeWidth: 2 },
+            { dataKey: 'engagement', color: '#06b6d4', strokeWidth: 2 }
+          ]}
+          showArea={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="chart-card p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-xl shadow-xl">
       <h3 className="text-lg font-semibold text-white mb-4">Growth Monitoring</h3>

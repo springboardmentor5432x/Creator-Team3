@@ -1,0 +1,169 @@
+:root {
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  font: 16px/145% var(--sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme="midnight"] {
+  --bg-primary: #0b0f19;
+  --bg-secondary: rgba(30, 41, 59, 0.6);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-primary: #3b82f6;
+  --accent-secondary: #ec4899;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme="aurora"] {
+  --bg-primary: #06140f;
+  --bg-secondary: rgba(16, 44, 34, 0.6);
+  --border-color: rgba(52, 211, 153, 0.15);
+  --accent-primary: #10b981;
+  --accent-secondary: #fbbf24;
+  --accent-glow: rgba(16, 185, 129, 0.15);
+  --text-primary: #f0fdf4;
+  --text-secondary: #a7f3d0;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme="amethyst"] {
+  --bg-primary: #0f0b15;
+  --bg-secondary: rgba(43, 27, 65, 0.6);
+  --border-color: rgba(192, 132, 252, 0.15);
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #00f0ff;
+  --accent-glow: rgba(139, 92, 246, 0.15);
+  --text-primary: #faf5ff;
+  --text-secondary: #e9d5ff;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme="rose"] {
+  --bg-primary: #18090f;
+  --bg-secondary: rgba(64, 18, 36, 0.6);
+  --border-color: rgba(244, 63, 94, 0.15);
+  --accent-primary: #f43f5e;
+  --accent-secondary: #f59e0b;
+  --accent-glow: rgba(244, 63, 94, 0.15);
+  --text-primary: #fff1f2;
+  --text-secondary: #fecdd3;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #34d399;
+  --trend-neg: #f87171;
+  --trend-pos-bg: rgba(16, 185, 129, 0.12);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme="cyberpunk"] {
+  --bg-primary: #0a0a0c;
+  --bg-secondary: rgba(26, 26, 36, 0.7);
+  --border-color: rgba(247, 224, 24, 0.3);
+  --accent-primary: #00f0ff;
+  --accent-secondary: #f7e018;
+  --accent-glow: rgba(0, 240, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: #f7e018;
+  --grid-color: rgba(255, 255, 255, 0.05);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  --trend-pos: #f7e018;
+  --trend-neg: #ef4444;
+  --trend-pos-bg: rgba(247, 224, 24, 0.1);
+  --trend-neg-bg: rgba(239, 68, 68, 0.12);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f1f5f9;
+  --bg-secondary: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(15, 23, 42, 0.08);
+  --accent-primary: #2563eb;
+  --accent-secondary: #db2777;
+  --accent-glow: rgba(37, 99, 235, 0.08);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --grid-color: rgba(15, 23, 42, 0.06);
+  --input-bg: rgba(255, 255, 255, 0.85);
+  --trend-pos: #059669;
+  --trend-neg: #dc2626;
+  --trend-pos-bg: rgba(5, 150, 105, 0.08);
+  --trend-neg-bg: rgba(220, 38, 38, 0.08);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-primary, #0b0f19);
+  transition: background-color 0.3s ease;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h1 {
+  font-size: 56px;
+  letter-spacing: -1.68px;
+  margin: 32px 0;
+  @media (max-width: 1024px) {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+}
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+code,
+.counter {
+  font-family: var(--mono);
+  display: inline-flex;
+  border-radius: 4px;
+  color: var(--text-h);
+}
+
+code {
+  font-size: 15px;
+  line-height: 135%;
+  padding: 4px 8px;
+  background: var(--code-bg);
+}

@@ -1,0 +1,65 @@
+/******************************************************
+ * Neon/Cyberpunk aesthetic helpers (clean + modular)
+ * Colors requested:
+ * - Background: #0a1f1c (deep green)
+ * - Neon Blue:  #00f2ff
+ * - Accent Pink: #ff007f
+ * - Readable text: #e0e0e0
+ ******************************************************/
+
+:root {
+  --neon-bg: #0a1f1c;
+  --neon-blue: #00f2ff;
+  --neon-pink: #ff007f;
+  --neon-text: #e0e0e0;
+  --neon-border: rgba(255, 255, 255, 0.08);
+}
+
+/* 0) Background utility (optional) */
+.neon-bg {
+  background: var(--neon-bg);
+}
+
+/* 1) Container card */
+.neon-card {
+  background: rgba(10, 31, 28, 0.65);
+  border: 1px solid var(--neon-border);
+  border-radius: 1rem;
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 242, 255, 0.06);
+}
+
+/* 2) Chart bar styles (SVG elements for Recharts) */
+.neon-bar {
+  fill: var(--neon-blue);
+  filter: drop-shadow(0 0 6px rgba(0, 242, 255, 0.35));
+}
+
+.neon-bar-accent {
+  fill: var(--neon-pink);
+  filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.35));
+}
+
+/* 3) Readability text */
+.neon-text {
+  color: var(--neon-text);
+}
+
+/* 4) Area gradient stops for Recharts SVG */
+/* Use inside <defs> like:
+ * <linearGradient id="neonArea" ...>
+ *   <stop className="neon-area-gradient" offset="5%" />
+ *   <stop className="neon-area-gradient-end" offset="95%" />
+ * </linearGradient>
+ */
+.neon-area-gradient {
+  stop-color: var(--neon-blue);
+  stop-opacity: 0.35;
+}
+
+.neon-area-gradient-end {
+  stop-color: var(--neon-blue);
+  stop-opacity: 0;
+}
+

@@ -39,7 +39,7 @@ def get_connected_accounts(user=Depends(verify_token), db: Session = Depends(get
         return []
         
     accounts = db.query(SocialAccount).filter(SocialAccount.creator_id == profile.creator_id).all()
-    return [
+    connected = [
         {
             "account_id": a.account_id,
             "platform": a.platform,
@@ -48,6 +48,19 @@ def get_connected_accounts(user=Depends(verify_token), db: Session = Depends(get
         }
         for a in accounts
     ]
+    
+    # Also fetch new Instagrapi account
+    from models import InstagramAccount
+    ig_acc = db.query(InstagramAccount).filter(InstagramAccount.user_id == db_user.id).first()
+    if ig_acc and ig_acc.connected_status == "connected":
+        connected.append({
+            "account_id": ig_acc.instagram_user_id,
+            "platform": "Instagram",
+            "account_name": f"@{ig_acc.username}",
+            "followers": ig_acc.followers_count
+        })
+        
+    return connected
 
 @router.post("/connect")
 def connect_social_account(data: SocialConnectRequest, user=Depends(verify_token), db: Session = Depends(get_db)):
@@ -125,15 +138,23 @@ def disconnect_social_account(platform: str, user=Depends(verify_token), db: Ses
     if not profile:
         raise HTTPException(status_code=404, detail="Creator profile not configured")
         
+    if platform.lower() == "instagram":
+        from models import InstagramAccount
+        ig_acc = db.query(InstagramAccount).filter(InstagramAccount.user_id == db_user.id).first()
+        if ig_acc:
+            db.delete(ig_acc)
+            db.commit()
+            
     account = db.query(SocialAccount).filter(
         SocialAccount.creator_id == profile.creator_id,
         SocialAccount.platform == platform
     ).first()
-    if not account:
+    
+    if account:
+        db.delete(account)
+        db.commit()
+    elif not (platform.lower() == "instagram" and ig_acc):
         raise HTTPException(status_code=404, detail="Connected account not found")
-        
-    db.delete(account)
-    db.commit()
     
     # Update total profile followers count
     all_accounts = db.query(SocialAccount).filter(SocialAccount.creator_id == profile.creator_id).all()

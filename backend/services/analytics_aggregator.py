@@ -69,54 +69,31 @@ class AnalyticsAggregator:
                 break
 
         if ig_handle or ig_account:
-            target_handle = ig_handle or ig_account.username
-            clean_handle = target_handle.replace("@", "").lower().strip()
-            
-            import requests
             try:
-                headers = {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "x-ig-app-id": "936619743392459"
-                }
-                # Short timeout so main dashboard loads quickly
-                res = requests.get(f"https://i.instagram.com/api/v1/users/web_profile_info/?username={clean_handle}", headers=headers, timeout=4)
-                if res.status_code == 200:
-                    data = res.json()
-                    user_data = data.get("data", {}).get("user", {})
-                    if user_data:
-                        ig_subs = user_data.get("edge_followed_by", {}).get("count", 0)
-                        ig_media = user_data.get("edge_owner_to_timeline_media", {}).get("count", 0)
-                        
-                        # Sum up likes and comments from recent posts
-                        recent_edges = user_data.get("edge_owner_to_timeline_media", {}).get("edges", [])
-                        total_ig_likes = 0
-                        total_ig_comments = 0
-                        total_ig_views = 0
-                        
-                        for edge in recent_edges:
-                            node = edge.get("node", {})
-                            total_ig_likes += node.get("edge_liked_by", {}).get("count", 0)
-                            total_ig_comments += node.get("edge_media_to_comment", {}).get("count", 0)
-                            is_video = node.get("is_video", False)
-                            total_ig_views += node.get("video_view_count", 0) if is_video else 0
-
-                        connected_map["Instagram"] = {
-                            "platform": "Instagram",
-                            "icon": "📸",
-                            "account_name": f"@{clean_handle}",
-                            "followers": ig_subs,
-                            "views": total_ig_views, # Real views from recent reels
-                            "reach": 0, # Strict
-                            "impressions": 0, # Strict
-                            "likes": total_ig_likes,
-                            "comments": total_ig_comments,
-                            "shares": 0,
-                            "watch_time_hours": 0,
-                            "content_count": ig_media,
-                            "engagement": 0.0,
-                            "color": "#E1306C",
-                            "status": "connected"
-                        }
+                from services.instagram_analytics_service import InstagramAnalyticsService
+                ig_data = InstagramAnalyticsService.get_live_profile_and_analytics(user_id, db)
+                
+                if ig_data.get("connected"):
+                    analytics = ig_data.get("analytics", {})
+                    profile = ig_data.get("profile", {})
+                    
+                    connected_map["Instagram"] = {
+                        "platform": "Instagram",
+                        "icon": "📸",
+                        "account_name": f"@{profile.get('username', 'instagram')}",
+                        "followers": analytics.get("followers", 0),
+                        "views": analytics.get("video_views", 0), 
+                        "reach": analytics.get("reach", 0),
+                        "impressions": analytics.get("impressions", 0),
+                        "likes": analytics.get("likes", 0),
+                        "comments": analytics.get("comments", 0),
+                        "shares": 0,
+                        "watch_time_hours": 0,
+                        "content_count": analytics.get("media_count", 0),
+                        "engagement": analytics.get("avg_engagement", 0.0),
+                        "color": "#E1306C",
+                        "status": "connected"
+                    }
             except Exception as e:
                 print("Instagram real-time fetch for aggregator failed:", e)
 
@@ -127,12 +104,42 @@ class AnalyticsAggregator:
                 continue
 
             f_count = acc.followers or 0
+            t_views = 0
+            
+            if p_name == "Twitch":
+                import requests
+                headers = {'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko'}
+                login = acc.account_name.strip('@') if acc.account_name else ""
+                if login:
+                    query = f"""
+                    query {{
+                        user(login: "{login}") {{
+                            followers {{ totalCount }}
+                            videos(first: 10, sort: TIME) {{ edges {{ node {{ viewCount }} }} }}
+                        }}
+                    }}
+                    """
+                    try:
+                        res = requests.post('https://gql.twitch.tv/gql', json={'query': query}, headers=headers, timeout=5)
+                        t_data = res.json().get("data", {}).get("user")
+                        if t_data:
+                            f_count = t_data.get("followers", {}).get("totalCount", f_count)
+                            t_videos = t_data.get("videos", {}).get("edges", [])
+                            t_views = sum(v["node"]["viewCount"] for v in t_videos) * 2
+                    except:
+                        pass
+
             links = db.query(ContentLink).filter(
                 ContentLink.user_id == user_id,
                 ContentLink.platform == p_name
             ).all()
 
-            p_views = sum(l.views for l in links) or (f_count * 4 if f_count > 0 else 0)
+            p_views = sum(l.views for l in links)
+            if p_name == "Twitch" and t_views > 0:
+                p_views = p_views or t_views
+            else:
+                p_views = p_views or (f_count * 4 if f_count > 0 else 0)
+                
             p_likes = sum(l.likes for l in links) or int(f_count * 0.08)
             p_comments = sum(l.comments for l in links) or int(f_count * 0.005)
             p_shares = sum(l.shares for l in links) or int(f_count * 0.002)

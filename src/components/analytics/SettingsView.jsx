@@ -1,8 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../../context/ThemeContext';
-import HyperWarningModal from '../hyper/HyperWarningModal';
-import HyperActivationSequence from '../hyper/HyperActivationSequence';
-import HyperButton from '../hyper/primitives/HyperButton';
 
 const themesList = [
   { id: 'midnight', name: 'Slate Midnight', accent: '#3b82f6', bg: '#0b0f19', colors: ['#0b0f19', '#1e293b', '#3b82f6'] },
@@ -13,15 +9,10 @@ const themesList = [
   { id: 'light', name: 'Snow Alabaster', accent: '#2563eb', bg: '#f1f5f9', colors: ['#f1f5f9', '#ffffff', '#2563eb'] }
 ];
 
-export default function SettingsView({ token, onThemeChange, currentTheme, onAuthUpdate, defaultTab = 'account' }) {
-  const [activeSubTab, setActiveSubTab] = useState(defaultTab);
+export default function SettingsView({ token, onThemeChange, currentTheme, onAuthUpdate }) {
+  const [activeSubTab, setActiveSubTab] = useState('account');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  
-  // HyperUI Context & State
-  const { isHyperUI, setHyperUI, performanceMode, setPerfMode } = useTheme();
-  const [showHyperModal, setShowHyperModal] = useState(false);
-  const [isActivatingHyper, setIsActivatingHyper] = useState(false);
 
   // Account form state
   const [username, setUsername] = useState('');
@@ -490,9 +481,9 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <HyperButton onClick={handleSaveAccount} disabled={loading}>
+              <button type="submit" className="save-btn" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Account Settings'}
-              </HyperButton>
+              </button>
             </form>
           </div>
         )}
@@ -553,9 +544,9 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                   </select>
                 </div>
               </div>
-              <HyperButton onClick={handleSaveProfile} disabled={loading}>
+              <button type="submit" className="save-btn" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Profile Settings'}
-              </HyperButton>
+              </button>
             </form>
           </div>
         )}
@@ -585,68 +576,6 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
                 </div>
               ))}
             </div>
-
-            {/* HyperUI Section */}
-            <div style={{ marginTop: 'var(--space-8)', padding: 'var(--space-6)', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: 'var(--radius-xl)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    HyperUI (Experimental)
-                  </h3>
-                  <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted)', fontSize: 'var(--text-sm)', maxWidth: '500px', lineHeight: 1.5 }}>
-                    Transform your dashboard into an immersive, GPU-accelerated 3D environment with spatial audio, dynamic lighting, and particle physics. 
-                  </p>
-                </div>
-                
-                <button 
-                  onClick={() => {
-                    if (isHyperUI) {
-                      setHyperUI(false);
-                    } else {
-                      setShowHyperModal(true);
-                    }
-                  }}
-                  style={{
-                    background: isHyperUI ? 'rgba(239, 68, 68, 0.1)' : 'var(--accent-primary)',
-                    color: isHyperUI ? '#ef4444' : 'white',
-                    border: isHyperUI ? '1px solid rgba(239, 68, 68, 0.3)' : 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {isHyperUI ? 'Disable HyperUI' : 'Enable HyperUI'}
-                </button>
-              </div>
-
-              {isHyperUI && (
-                <div style={{ marginTop: 'var(--space-6)', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 'var(--space-4)' }}>
-                  <h4 style={{ margin: '0 0 var(--space-3) 0', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>Performance Mode</h4>
-                  <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
-                    {['ultra', 'balanced', 'battery'].map(mode => (
-                      <button
-                        key={mode}
-                        onClick={() => setPerfMode(mode)}
-                        style={{
-                          background: performanceMode === mode ? 'var(--accent-primary)' : 'rgba(255,255,255,0.05)',
-                          color: performanceMode === mode ? 'white' : 'var(--text-muted)',
-                          border: '1px solid ' + (performanceMode === mode ? 'var(--accent-primary)' : 'rgba(255,255,255,0.1)'),
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          textTransform: 'capitalize',
-                          cursor: 'pointer',
-                          fontSize: 'var(--text-xs)'
-                        }}
-                      >
-                        {mode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         )}
 
@@ -655,24 +584,6 @@ export default function SettingsView({ token, onThemeChange, currentTheme, onAut
           <ConnectedAccountsTab token={token} />
         )}
       </div>
-
-      <HyperWarningModal
-        isOpen={showHyperModal}
-        onConfirm={() => {
-          setShowHyperModal(false);
-          setIsActivatingHyper(true);
-        }}
-        onCancel={() => setShowHyperModal(false)}
-      />
-
-      {isActivatingHyper && (
-        <HyperActivationSequence
-          onComplete={() => {
-            setIsActivatingHyper(false);
-            setHyperUI(true);
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -684,34 +595,24 @@ function ConnectedAccountsTab({ token }) {
   const [ytLoading, setYtLoading] = useState(false);
   const [ytError, setYtError] = useState('');
   
-  const [igHandle, setIgHandle] = useState('cristiano');
+  const [igHandle, setIgHandle] = useState('');
+  const [igPassword, setIgPassword] = useState('');
   const [igResult, setIgResult] = useState(null);
   const [igLoading, setIgLoading] = useState(false);
   const [igError, setIgError] = useState('');
-  const [igManualMode, setIgManualMode] = useState(false);
-  const [igManualName, setIgManualName] = useState('');
-  const [igManualFollowers, setIgManualFollowers] = useState('');
   
   const [connLoading, setConnLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
 
-
-  const handleOAuthConnect = async (platform) => {
-    try {
-      const res = await fetch(`http://127.0.0.1:8000/api/auth/${platform}/connect`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (res.ok && data.authorization_url) {
-        window.location.href = data.authorization_url;
-      } else {
-        setFeedback({ type: 'error', text: data.error || `Failed to connect to ${platform}` });
-      }
-    } catch (err) {
-      setFeedback({ type: 'error', text: err.message });
-    }
-  };
-
+  // LinkedIn state (query-by-handle, same pattern as Instagram, with manual fallback
+  // since LinkedIn blocks automated lookups far more often than Instagram does)
+  const [liHandle, setLiHandle] = useState('microsoft');
+  const [liResult, setLiResult] = useState(null);
+  const [liLoading, setLiLoading] = useState(false);
+  const [liError, setLiError] = useState('');
+  const [liManualMode, setLiManualMode] = useState(false);
+  const [liManualName, setLiManualName] = useState('');
+  const [liManualFollowers, setLiManualFollowers] = useState('');
 
   const handleFetchLinkedIn = async (e) => {
     e.preventDefault();
@@ -794,50 +695,136 @@ function ConnectedAccountsTab({ token }) {
     setTwManualFollowers('');
   };
 
-  // Facebook state - same query-by-handle + manual-fallback pattern
-  const [fbHandle, setFbHandle] = useState('nike');
-  const [fbResult, setFbResult] = useState(null);
-  const [fbLoading, setFbLoading] = useState(false);
+  // Facebook state - official Meta Graph API OAuth connection (Facebook Login
+  // for Business), not scraping. This mirrors how a production integration
+  // should work: redirect to Facebook's consent screen, come back with a
+  // `code`, hand it to the backend, which talks to graph.facebook.com directly.
+  const [fbAccount, setFbAccount] = useState(null);
+  const [fbStatusLoading, setFbStatusLoading] = useState(true);
+  const [fbConnectLoading, setFbConnectLoading] = useState(false);
   const [fbError, setFbError] = useState('');
-  const [fbManualMode, setFbManualMode] = useState(false);
-  const [fbManualName, setFbManualName] = useState('');
-  const [fbManualFollowers, setFbManualFollowers] = useState('');
+  const [fbNotConfigured, setFbNotConfigured] = useState('');
 
-  const handleFetchFacebook = async (e) => {
-    e.preventDefault();
-    setFbResult(null);
-    setFbError('');
-    setFbManualMode(false);
-    setFbLoading(true);
-    setFeedback({ type: '', text: '' });
+  const FB_OAUTH_STATE = 'creatoriq_fb_state';
 
+  const fetchFacebookStatus = async () => {
     try {
-      const cleanHandle = fbHandle.replace('@', '').trim();
-      const res = await fetch(`http://127.0.0.1:8000/api/social/facebook/scrape/${encodeURIComponent(cleanHandle)}`);
+      setFbStatusLoading(true);
+      const res = await fetch('http://127.0.0.1:8000/api/auth/facebook/status', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await res.json();
-      if (!res.ok) {
-        // Facebook blocked the automated lookup - drop into manual entry instead of just failing
-        setFbManualMode(true);
-        setFbManualName(cleanHandle);
-        throw new Error(data.detail || 'Facebook blocked this lookup.');
+      setFbAccount(data.connected ? data : null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setFbStatusLoading(false);
+    }
+  };
+
+  const handleConnectFacebook = async () => {
+    setFbError('');
+    setFbNotConfigured('');
+    setFbConnectLoading(true);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/auth/facebook/connect', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.configured) {
+        setFbNotConfigured(data.error || 'Meta Developer App is not configured on the backend.');
+        return;
       }
-      setFbResult(data);
+      // Hand off to Facebook's official OAuth consent screen
+      window.location.href = data.authorization_url;
+    } catch (err) {
+      setFbError(err.message || 'Failed to start Facebook OAuth flow.');
+    } finally {
+      setFbConnectLoading(false);
+    }
+  };
+
+  const handleDisconnectFacebook = async () => {
+    setFbError('');
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/auth/facebook/disconnect', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to disconnect Facebook Page');
+      setFbAccount(null);
+      setFeedback({ type: 'success', text: 'Disconnected Facebook Page.' });
+      fetchConnectedAccounts();
     } catch (err) {
       setFbError(err.message);
-    } finally {
-      setFbLoading(false);
     }
   };
 
-  const handleSaveFacebookManual = () => {
-    if (!fbManualName.trim()) {
-      setFbError('Enter an account name first.');
-      return;
+  // Complete the OAuth round-trip: Facebook redirects back to this same page
+  // with ?code=...&state=creatoriq_fb_state - pick that up once, exchange it
+  // with the backend, then scrub the URL so a refresh doesn't replay it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+
+    if (code && state === FB_OAUTH_STATE && token) {
+      (async () => {
+        setFbConnectLoading(true);
+        setFbError('');
+        try {
+          const res = await fetch('http://127.0.0.1:8000/api/auth/facebook/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ code })
+          });
+          const data = await res.json();
+          if (data.status !== 'connected') {
+            throw new Error(data.error || 'Failed to complete Facebook connection.');
+          }
+          setFeedback({ type: 'success', text: `Connected Facebook Page: ${data.page_name}!` });
+          fetchConnectedAccounts();
+          fetchFacebookStatus();
+        } catch (err) {
+          setFbError(err.message);
+        } finally {
+          setFbConnectLoading(false);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      })();
+    } else if (code && state === 'creatoriq_twitch_state' && token) {
+      (async () => {
+        setConnLoading(true);
+        try {
+          const res = await fetch('http://127.0.0.1:8000/api/auth/twitch/callback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ code })
+          });
+          const data = await res.json();
+          if (data.status !== 'connected') {
+            throw new Error(data.error || 'Failed to complete Twitch connection.');
+          }
+          setFeedback({ type: 'success', text: `Connected Twitch Channel: ${data.username}!` });
+          fetchConnectedAccounts();
+        } catch (err) {
+          setFeedback({ type: 'error', text: err.message });
+        } finally {
+          setConnLoading(false);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      })();
+    } else {
+      fetchFacebookStatus();
     }
-    handleSaveConnection('Facebook', fbManualName.trim(), fbManualFollowers || 0);
-    setFbManualMode(false);
-    setFbManualFollowers('');
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   const fetchConnectedAccounts = async () => {
     try {
@@ -887,40 +874,34 @@ function ConnectedAccountsTab({ token }) {
     e.preventDefault();
     setIgResult(null);
     setIgError('');
-    setIgManualMode(false);
     setIgLoading(true);
     setFeedback({ type: '', text: '' });
 
     try {
       const cleanHandle = igHandle.replace('@', '').trim();
-      const res = await fetch(`http://127.0.0.1:8000/api/social/instagram/scrape/${cleanHandle}`);
+      const res = await fetch(`http://127.0.0.1:8000/api/instagram/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          username: cleanHandle,
+          password: igPassword
+        })
+      });
       const data = await res.json();
       if (!res.ok) {
-        setIgManualMode(true);
-        setIgManualName(cleanHandle);
-        throw new Error(data.detail || data.message || 'Instagram blocked this lookup.');
+        throw new Error(data.detail || 'Failed to connect Instagram account');
       }
-      if (data.error) {
-        setIgManualMode(true);
-        setIgManualName(cleanHandle);
-        throw new Error(data.error);
-      }
-      setIgResult(data);
+      setFeedback({ type: 'success', text: `Successfully connected Instagram account: @${data.username}!` });
+      setIgPassword('');
+      fetchConnectedAccounts();
     } catch (err) {
       setIgError(err.message);
     } finally {
       setIgLoading(false);
     }
-  };
-
-  const handleSaveInstagramManual = () => {
-    if (!igManualName.trim()) {
-      setIgError('Enter an account name first.');
-      return;
-    }
-    handleSaveConnection('Instagram', igManualName.trim(), igManualFollowers || 0);
-    setIgManualMode(false);
-    setIgManualFollowers('');
   };
 
   const handleSaveConnection = async (platform, name, followers, cid = '') => {
@@ -1140,108 +1121,43 @@ function ConnectedAccountsTab({ token }) {
             Fetch live statistics directly from Instagram and bind them to your dashboard.
           </p>
           
-          <form onSubmit={handleFetchInstagram} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <input 
-              type="text" 
-              className="settings-input" 
-              placeholder="e.g. cristiano" 
-              value={igHandle}
-              onChange={(e) => setIgHandle(e.target.value)}
-              required
-            />
+          <form onSubmit={handleFetchInstagram} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem', maxWidth: '300px' }}>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-secondary)' }}>@</span>
+              <input 
+                type="text" 
+                className="settings-input"
+                style={{ width: '100%', paddingLeft: '30px' }}
+                placeholder="instagram_handle"
+                value={igHandle}
+                onChange={(e) => setIgHandle(e.target.value)}
+                required
+              />
+            </div>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input 
+                type="password" 
+                className="settings-input"
+                style={{ width: '100%' }}
+                placeholder="password"
+                value={igPassword}
+                onChange={(e) => setIgPassword(e.target.value)}
+                required
+              />
+            </div>
             <button 
               type="submit" 
               className="save-btn" 
               style={{ padding: '10px 18px', margin: 0, background: '#db2777' }}
               disabled={igLoading}
             >
-              {igLoading ? 'Querying...' : 'Query Profile'}
+              {igLoading ? 'Connecting...' : 'Connect Profile'}
             </button>
           </form>
 
           {igError && (
             <div className="settings-banner error" style={{ margin: '1rem 0 0 0' }}>
-              Instagram Scraper Error: {igError}
-            </div>
-          )}
-
-          {igManualMode && (
-            <div style={{
-              background: 'rgba(219, 39, 119, 0.1)',
-              border: '1px solid rgba(219, 39, 119, 0.3)',
-              borderRadius: '12px',
-              padding: '1.25rem',
-              marginTop: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <h4 style={{ margin: 0, color: '#db2777', fontSize: '0.95rem' }}>
-                Manual Entry Required
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                Instagram has blocked the automated lookup for <strong>{igManualName}</strong>. Please enter your follower count manually to bind this account.
-              </p>
-              
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginTop: '0.5rem' }}>
-                <input 
-                  type="number" 
-                  className="settings-input" 
-                  placeholder="Follower Count (e.g. 10500)" 
-                  value={igManualFollowers}
-                  onChange={(e) => setIgManualFollowers(e.target.value)}
-                  style={{ maxWidth: '200px' }}
-                />
-                <button 
-                  type="button"
-                  className="save-btn"
-                  style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', margin: 0 }}
-                  disabled={connLoading}
-                  onClick={handleSaveInstagramManual}
-                >
-                  {connLoading ? 'Linking...' : 'Confirm Manual Bind ➔'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {igResult && !igManualMode && (
-            <div style={{
-              background: 'rgba(255,255,255,0.02)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '12px',
-              padding: '1.25rem',
-              marginTop: '1rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <h4 style={{ margin: 0, color: '#db2777', fontSize: '0.95rem' }}>
-                Profile Found: {igResult.username || igResult.account_name}
-              </h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-                <div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Followers</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{(igResult.followers || 0).toLocaleString()}</div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Following</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{(igResult.following || igResult.follows_count || 0).toLocaleString()}</div>
-                </div>
-                <div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Posts</div>
-                  <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{(igResult.posts || igResult.media_count || 0).toLocaleString()}</div>
-                </div>
-              </div>
-              <button 
-                type="button"
-                className="save-btn"
-                style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', alignSelf: 'flex-start' }}
-                disabled={connLoading}
-                onClick={() => handleSaveConnection('Instagram', igResult.username || igResult.account_name, igResult.followers)}
-              >
-                {connLoading ? 'Linking...' : 'Confirm Connection ➔'}
-              </button>
+              Instagram Connect Error: {igError}
             </div>
           )}
         </div>
@@ -1261,94 +1177,36 @@ function ConnectedAccountsTab({ token }) {
             LinkedIn sometimes blocks automated lookups — if that happens you can enter your stats manually instead.
           </p>
 
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <button
-              type="button"
-              className="save-btn"
-              style={{ padding: '10px 18px', margin: 0, background: '#0a66c2' }}
-              onClick={() => handleOAuthConnect('linkedin')}
-            >
-              Connect with LinkedIn OAuth
-            </button>
-          </div>
-
-
-        </div>
-
-        {/* Twitter / X Connection Card */}
-        <div style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '16px',
-          padding: '1.5rem'
-        }}>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🐦 Connect X / Twitter Profile
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
-            Fetch a public follower count from X and bind it to your dashboard.
-            X retired its free public follower API, so this often gets blocked — enter your stats manually if it does.
-          </p>
-
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-            <button
-              type="button"
-              className="save-btn"
-              style={{ padding: '10px 18px', margin: 0, background: '#1da1f2' }}
-              onClick={() => handleOAuthConnect('twitter')}
-            >
-              Connect with X OAuth
-            </button>
-          </div>
-
-
-        </div>
-
-        {/* Facebook Connection Card */}
-        <div style={{
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '16px',
-          padding: '1.5rem'
-        }}>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            📘 Connect Facebook Page
-          </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
-            Fetch a public follower/like count from a Facebook Page and bind it to your dashboard.
-            Facebook gates most content behind a login wall — this only has a chance on public Pages, and often needs the manual fallback.
-          </p>
-
-          <form onSubmit={handleFetchFacebook} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <form onSubmit={handleFetchLinkedIn} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
             <input
               type="text"
               className="settings-input"
               style={{ maxWidth: '300px' }}
-              placeholder="Page handle, e.g. nike"
-              value={fbHandle}
-              onChange={(e) => setFbHandle(e.target.value)}
+              placeholder="Company handle, e.g. microsoft"
+              value={liHandle}
+              onChange={(e) => setLiHandle(e.target.value)}
               required
             />
             <button
               type="submit"
               className="save-btn"
-              style={{ padding: '10px 18px', margin: 0, background: '#1877f2' }}
-              disabled={fbLoading}
+              style={{ padding: '10px 18px', margin: 0, background: '#0a66c2' }}
+              disabled={liLoading}
             >
-              {fbLoading ? 'Querying...' : 'Query Profile'}
+              {liLoading ? 'Querying...' : 'Query Profile'}
             </button>
           </form>
 
-          {fbError && (
+          {liError && (
             <div className="settings-banner error" style={{ margin: '1rem 0 0 0' }}>
-              Facebook Lookup: {fbError}
+              LinkedIn Lookup: {liError}
             </div>
           )}
 
-          {fbResult && (
+          {liResult && (
             <div style={{
               background: 'rgba(255,255,255,0.02)',
-              border: '1px solid rgba(24, 119, 242, 0.3)',
+              border: '1px solid rgba(10, 102, 194, 0.3)',
               borderRadius: '12px',
               padding: '1.25rem',
               marginTop: '1rem',
@@ -1356,26 +1214,26 @@ function ConnectedAccountsTab({ token }) {
               flexDirection: 'column',
               gap: '12px'
             }}>
-              <h4 style={{ margin: 0, color: '#1877f2', fontSize: '0.95rem' }}>
-                Page Found: {fbResult.name}
+              <h4 style={{ margin: 0, color: '#0a66c2', fontSize: '0.95rem' }}>
+                Profile Found: {liResult.name}
               </h4>
               <div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Followers</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{fbResult.followers.toLocaleString()}</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{liResult.followers.toLocaleString()}</div>
               </div>
               <button
                 type="button"
                 className="save-btn"
                 style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', alignSelf: 'flex-start' }}
                 disabled={connLoading}
-                onClick={() => handleSaveConnection('Facebook', fbResult.name, fbResult.followers)}
+                onClick={() => handleSaveConnection('LinkedIn', liResult.name, liResult.followers)}
               >
                 {connLoading ? 'Linking...' : 'Confirm Connection ➔'}
               </button>
             </div>
           )}
 
-          {fbManualMode && (
+          {liManualMode && (
             <div style={{
               background: 'rgba(255,255,255,0.02)',
               border: '1px solid var(--border-color)',
@@ -1394,29 +1252,239 @@ function ConnectedAccountsTab({ token }) {
                   type="text"
                   className="settings-input"
                   style={{ maxWidth: '220px' }}
-                  placeholder="Page name"
-                  value={fbManualName}
-                  onChange={(e) => setFbManualName(e.target.value)}
+                  placeholder="Account / company name"
+                  value={liManualName}
+                  onChange={(e) => setLiManualName(e.target.value)}
                 />
                 <input
                   type="number"
                   className="settings-input"
                   style={{ maxWidth: '160px' }}
                   placeholder="Followers"
-                  value={fbManualFollowers}
-                  onChange={(e) => setFbManualFollowers(e.target.value)}
+                  value={liManualFollowers}
+                  onChange={(e) => setLiManualFollowers(e.target.value)}
                 />
                 <button
                   type="button"
                   className="save-btn"
                   style={{ padding: '10px 18px', margin: 0, background: '#22c55e' }}
                   disabled={connLoading}
-                  onClick={handleSaveFacebookManual}
+                  onClick={handleSaveLinkedInManual}
                 >
                   {connLoading ? 'Linking...' : 'Save Manually ➔'}
                 </button>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Twitter / X Connection Card */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🐦 Connect X / Twitter Profile
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Fetch a public follower count from X and bind it to your dashboard.
+            X retired its free public follower API, so this often gets blocked — enter your stats manually if it does.
+          </p>
+
+          <form onSubmit={handleFetchTwitter} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ position: 'relative', width: '300px' }}>
+              <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-secondary)' }}>@</span>
+              <input
+                type="text"
+                className="settings-input"
+                style={{ width: '100%', paddingLeft: '30px' }}
+                placeholder="twitter_handle"
+                value={twHandle}
+                onChange={(e) => setTwHandle(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="save-btn"
+              style={{ padding: '10px 18px', margin: 0, background: '#1da1f2' }}
+              disabled={twLoading}
+            >
+              {twLoading ? 'Querying...' : 'Query Profile'}
+            </button>
+          </form>
+
+          {twError && (
+            <div className="settings-banner error" style={{ margin: '1rem 0 0 0' }}>
+              X / Twitter Lookup: {twError}
+            </div>
+          )}
+
+          {twResult && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(29, 161, 242, 0.3)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <h4 style={{ margin: 0, color: '#1da1f2', fontSize: '0.95rem' }}>
+                Profile Found: @{twResult.username}
+              </h4>
+              <div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 600 }}>Followers</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, marginTop: '2px' }}>{twResult.followers.toLocaleString()}</div>
+              </div>
+              <button
+                type="button"
+                className="save-btn"
+                style={{ padding: '8px 16px', fontSize: '0.8rem', background: '#22c55e', alignSelf: 'flex-start' }}
+                disabled={connLoading}
+                onClick={() => handleSaveConnection('Twitter', `@${twResult.username}`, twResult.followers)}
+              >
+                {connLoading ? 'Linking...' : 'Confirm Connection ➔'}
+              </button>
+            </div>
+          )}
+
+          {twManualMode && (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginTop: '1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px'
+            }}>
+              <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                Automated lookup was blocked — enter your stats manually
+              </h4>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <input
+                  type="text"
+                  className="settings-input"
+                  style={{ maxWidth: '220px' }}
+                  placeholder="Handle (without @)"
+                  value={twManualName}
+                  onChange={(e) => setTwManualName(e.target.value)}
+                />
+                <input
+                  type="number"
+                  className="settings-input"
+                  style={{ maxWidth: '160px' }}
+                  placeholder="Followers"
+                  value={twManualFollowers}
+                  onChange={(e) => setTwManualFollowers(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="save-btn"
+                  style={{ padding: '10px 18px', margin: 0, background: '#22c55e' }}
+                  disabled={connLoading}
+                  onClick={handleSaveTwitterManual}
+                >
+                  {connLoading ? 'Linking...' : 'Save Manually ➔'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Facebook Connection Card - Official Meta Graph API (OAuth) */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            📘 Connect Facebook Page
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Connects your Facebook Page through Facebook's official Graph API (Facebook Login for Business) —
+            the production-recommended path, with no scraping or login-wall guesswork.
+          </p>
+
+          {fbNotConfigured && (
+            <div className="settings-banner error" style={{ margin: '0 0 1.25rem 0' }}>
+              ⚠️ {fbNotConfigured} Add <code>META_APP_ID</code>, <code>META_APP_SECRET</code> and{' '}
+              <code>FACEBOOK_REDIRECT_URI</code> to <code>backend/.env</code> (see <code>.env.example</code>).
+            </div>
+          )}
+
+          {fbError && (
+            <div className="settings-banner error" style={{ margin: '0 0 1.25rem 0' }}>
+              Facebook API Error: {fbError}
+            </div>
+          )}
+
+          {fbStatusLoading ? (
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Checking connection status...</p>
+          ) : fbAccount ? (
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(24, 119, 242, 0.3)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {fbAccount.profile_picture_url && (
+                  <img
+                    src={fbAccount.profile_picture_url}
+                    alt={fbAccount.page_name}
+                    style={{ width: '44px', height: '44px', borderRadius: '10px', objectFit: 'cover' }}
+                  />
+                )}
+                <div>
+                  <h4 style={{ margin: 0, color: '#1877f2', fontSize: '0.95rem' }}>
+                    {fbAccount.page_name} {fbAccount.is_verified ? '✔️' : ''}
+                  </h4>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '2px' }}>
+                    {fbAccount.category ? `${fbAccount.category} • ` : ''}
+                    {fbAccount.followers_count.toLocaleString()} followers
+                    {fbAccount.last_synced_at ? ` • synced ${fbAccount.last_synced_at}` : ''}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleDisconnectFacebook}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#f87171',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '8px',
+                  padding: '8px 14px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="save-btn"
+              style={{ padding: '10px 18px', margin: 0, background: '#1877f2', display: 'flex', alignItems: 'center', gap: '8px' }}
+              disabled={fbConnectLoading}
+              onClick={handleConnectFacebook}
+            >
+              {fbConnectLoading ? 'Redirecting to Facebook...' : '📘 Connect with Facebook'}
+            </button>
           )}
         </div>
 
@@ -1443,6 +1511,69 @@ function ConnectedAccountsTab({ token }) {
               Connect TikTok Account
             </button>
           </div>
+        </div>
+
+        {/* Twitch Connection Card */}
+        <div style={{
+          background: 'rgba(255,255,255,0.02)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '16px',
+          padding: '1.5rem'
+        }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🟣 Connect Twitch Channel
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+            Fetch live statistics directly from Twitch API and bind them to your dashboard.
+          </p>
+          
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              setConnLoading(true);
+              const formData = new FormData(e.target);
+              const username = formData.get("twitchUsername");
+              const res = await fetch('http://127.0.0.1:8000/api/auth/twitch/mock-connect', {
+                method: 'POST',
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ username })
+              });
+              const data = await res.json();
+              if (res.ok) {
+                setFeedback({ type: 'success', text: `Successfully connected mock Twitch account: ${data.username}!` });
+                fetchConnectedAccounts();
+              } else {
+                setFeedback({ type: 'error', text: data.error || 'Failed to mock connect Twitch.' });
+              }
+            } catch (err) {
+              setFeedback({ type: 'error', text: err.message });
+            } finally {
+              setConnLoading(false);
+            }
+          }} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', maxWidth: '300px' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <span style={{ position: 'absolute', left: '12px', top: '10px', color: 'var(--text-secondary)' }}>@</span>
+              <input 
+                type="text" 
+                name="twitchUsername"
+                className="settings-input"
+                style={{ width: '100%', paddingLeft: '30px' }}
+                placeholder="twitch_handle"
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="save-btn"
+              style={{ background: '#9146ff' }}
+              disabled={connLoading}
+            >
+              {connLoading ? '...' : 'Connect'}
+            </button>
+          </form>
         </div>
 
       </div>

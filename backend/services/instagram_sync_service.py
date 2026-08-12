@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import Dict, Any
+import ast
 
 from models import InstagramAccount, InstagramMedia, InstagramSnapshot
 from services.instagram_service import InstagramService
@@ -25,7 +26,13 @@ class InstagramSyncService:
                 "last_synced_at": account.last_synced_at.strftime("%Y-%m-%d %H:%M UTC")
             }
 
-        client = InstagramService(access_token=account.access_token or "")
+        session_dict = {}
+        if account.access_token:
+            try:
+                session_dict = ast.literal_eval(account.access_token)
+            except Exception:
+                pass
+        client = InstagramService(session_data=session_dict)
         prof = {}
         insights = {}
         media_list = []

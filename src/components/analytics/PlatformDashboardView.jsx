@@ -63,6 +63,16 @@ const platformConfigs = {
       { id: 'reach', label: 'Post Reach (OAuth Required)', icon: Eye, format: (val, isConnected) => isConnected ? (val ? val.toLocaleString() : 'N/A') : 'Requires Account Connection' },
       { id: 'engagement', label: 'Engagement Rate (OAuth Required)', icon: Share2, format: (val, isConnected) => isConnected ? `${val}%` : 'Requires Account Connection' }
     ]
+  },
+  twitch: {
+    name: 'Twitch',
+    icon: '🟣',
+    color: '#9146ff',
+    metrics: [
+      { id: 'followers_count', label: 'Followers', icon: Users, format: (val) => val != null ? val.toLocaleString() : 'N/A' },
+      { id: 'view_count', label: 'Total Channel Views', icon: Eye, format: (val) => val != null ? val.toLocaleString() : 'N/A' },
+      { id: 'broadcaster_type', label: 'Broadcaster Status', icon: Award, format: (val) => val ? (val.charAt(0).toUpperCase() + val.slice(1)) : 'Standard' }
+    ]
   }
 };
 

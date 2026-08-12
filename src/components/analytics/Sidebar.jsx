@@ -14,9 +14,7 @@ import {
   PanelLeftClose, 
   PanelLeftOpen, 
   ChevronDown, 
-  ChevronRight,
-  FileText,
-  Bell
+  ChevronRight 
 } from 'lucide-react';
 
 // Brand SVG Icons
@@ -55,6 +53,12 @@ const Facebook = (props) => (
   </svg>
 );
 
+const TwitchIcon = (props) => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M21 2H3v16h5v4l4-4h5l4-4V2zm-10 9V7m5 4V7"/>
+  </svg>
+);
+
 export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCollapsed, userRole }) {
   const [platformsOpen, setPlatformsOpen] = useState(true);
 
@@ -63,6 +67,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
   const platforms = [
     { id: 'platform_instagram', label: 'Instagram', icon: Instagram, color: '#e1306c' },
     { id: 'platform_youtube', label: 'YouTube', icon: Youtube, color: '#ff0000' },
+    { id: 'platform_twitch', label: 'Twitch', icon: TwitchIcon, color: '#9146ff' },
     { id: 'platform_twitter', label: 'Twitter / X', icon: Twitter, color: '#1da1f2' },
     { id: 'platform_linkedin', label: 'LinkedIn', icon: Linkedin, color: '#0a66c2' },
     { id: 'platform_facebook', label: 'Facebook', icon: Facebook, color: '#1877f2' }
@@ -74,8 +79,6 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
     { id: 'prediction', label: 'Prediction Engine', icon: Sparkles },
     { id: 'revenue', label: 'Revenue Engine', icon: DollarSign },
     { id: 'content', label: 'Content Intelligence', icon: Zap },
-    { id: 'reports', label: 'Reports', icon: FileText },
-    { id: 'notifications', label: 'Notification Center', icon: Bell },
     { id: 'team', label: 'Team Workspace', icon: Building2 },
     { id: 'ai_copilot', label: 'AI Copilot', icon: Bot },
     { id: 'settings', label: 'Settings', icon: Settings },

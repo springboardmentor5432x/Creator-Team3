@@ -5,6 +5,11 @@ import { LatestVideoPanel } from './LatestVideoPanel';
 import { UploadHeatmap } from './UploadHeatmap';
 import { YouTubeContentTable } from './YouTubeContentTable';
 import { AudienceDemographics } from './AudienceDemographics';
+import InstagramTopCards from './InstagramTopCards';
+import InstagramAccountGraph from './InstagramAccountGraph';
+import ContentMomentumPanel from './ContentMomentumPanel';
+import InstagramContentGrid from './InstagramContentGrid';
+import ContentTypeComparison from './ContentTypeComparison';
 const platformConfigs = {
   instagram: {
     name: 'Instagram',
@@ -27,9 +32,9 @@ const platformConfigs = {
       { id: 'subscribers', label: 'Subscribers', icon: Users, format: (val) => val != null ? val.toLocaleString() : 'N/A' },
       { id: 'views', label: 'Total Channel Views', icon: Eye, format: (val) => val != null ? val.toLocaleString() : 'N/A' },
       { id: 'videos', label: 'Public Video Count', icon: Video, format: (val) => val != null ? val.toLocaleString() : 'N/A' },
-      { id: 'watch_time_hours', label: 'Watch Time (hrs)', icon: Clock, format: (val, isConnected, isOAuth) => isOAuth ? (val != null ? val.toLocaleString() : 'N/A') : 'Requires Google OAuth' },
-      { id: 'estimated_rpm', label: 'Actual RPM', icon: Award, format: (val, isConnected, isOAuth) => isOAuth ? `$${val || '3.40'}` : 'Requires Google OAuth' },
-      { id: 'estimated_revenue', label: 'Actual Revenue', icon: Award, format: (val, isConnected, isOAuth) => isOAuth ? `$${(val != null ? val : 0).toLocaleString()}` : (val != null ? `$${val.toLocaleString()} (AI Projection)` : 'N/A') }
+      { id: 'watch_time_hours', label: 'Watch Time (hrs)', icon: Clock, format: (val, isConnected, isOAuth) => val != null ? val.toLocaleString() : 'N/A' },
+      { id: 'estimated_rpm', label: 'Actual RPM', icon: Award, format: (val, isConnected, isOAuth) => val != null ? `$${val}` : (isOAuth ? `$3.40` : 'N/A') },
+      { id: 'estimated_revenue', label: 'Actual Revenue', icon: Award, format: (val, isConnected, isOAuth) => val != null ? `$${val.toLocaleString()}` : (isOAuth ? '$0' : 'N/A') }
     ]
   },
   twitter: {
@@ -232,16 +237,18 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
               <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)' }}>
                 {activeData?.channel_name || activeData?.profile?.name || `${config.name} Studio`}
               </h2>
-              <span style={{
-                background: `${config.color}33`,
-                color: config.color,
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '3px 10px',
-                borderRadius: '12px'
-              }}>
-                ✓ ACTIVE CHANNEL STREAM
-              </span>
+              {activeData?.is_oauth === true && (
+                <span style={{
+                  background: `${config.color}33`,
+                  color: config.color,
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  padding: '3px 10px',
+                  borderRadius: '12px'
+                }}>
+                  ✓ ACTIVE CHANNEL STREAM
+                </span>
+              )}
             </div>
             <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>
               {activeData?.custom_url || `@${key}_channel`} • {activeData?.description || 'Official Channel Telemetry'}
@@ -250,53 +257,72 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
         </div>
 
         <div style={{ textAlign: 'right', fontSize: '12px', color: 'var(--text-secondary)' }}>
-          <div>Status: <span style={{ color: '#10b981', fontWeight: 700 }}>● Live Channel Feed Active</span></div>
+          <div>Status: <span style={{ color: activeData?.is_oauth ? '#10b981' : '#f59e0b', fontWeight: 700 }}>
+            {activeData?.is_oauth ? '● Live Channel Feed Active' : '● Public Channel Intel Mode'}
+          </span></div>
           {activeData?.country && <div>Region: <strong style={{ color: 'var(--text-primary)' }}>{activeData.country}</strong></div>}
         </div>
       </div>
 
       {/* Metric KPI Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        {config.metrics.map(m => {
-          const IconComp = m.icon;
-          let rawVal = activeData?.[m.id] || activeData?.profile?.[m.id] || activeData?.analytics?.[m.id];
-          const isOAuth = activeData?.is_oauth === true;
-          const formatted = m.format(rawVal, isConnected, isOAuth);
-          
-          let telemetryLabel = "Live API Telemetry";
-          let telemetryColor = "#10b981";
-          
-          if (!isOAuth && (m.id === 'estimated_revenue' || m.id === 'estimated_rpm')) {
-              telemetryLabel = "CreatorIQ Estimated Model";
-              telemetryColor = "#f59e0b"; // Orange/warning color for estimates
-          } else if (!isOAuth && m.id === 'watch_time_hours') {
-              telemetryLabel = "OAuth Connection Required";
-              telemetryColor = "#ef4444"; // Red for unavailable
-          }
+      {key === 'instagram' ? (
+        <InstagramTopCards data={activeData} isOAuth={activeData.is_oauth} />
+      ) : (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: '24px',
+          marginBottom: '32px'
+        }}>
+          {config.metrics.map(m => {
+            const IconComp = m.icon;
+            let rawVal = activeData?.[m.id] || activeData?.profile?.[m.id] || activeData?.analytics?.[m.id];
+            const isOAuth = activeData?.is_oauth === true;
+            const formatted = m.format(rawVal, isConnected, isOAuth);
+            
+            let telemetryLabel = "Live API Telemetry";
+            let telemetryColor = "#10b981";
+            
+            if (!isOAuth && (m.id === 'estimated_revenue' || m.id === 'estimated_rpm')) {
+                telemetryLabel = "CreatorIQ Estimated Model";
+                telemetryColor = "#f59e0b";
+            } else if (!isOAuth && m.id === 'watch_time_hours') {
+                telemetryLabel = "OAuth Connection Required";
+                telemetryColor = "#ef4444";
+            }
 
-          return (
-            <div key={m.id} className="theme-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 600 }}>{m.label}</span>
-                <IconComp size={18} color={config.color} />
+            return (
+              <div key={m.id} className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '13px', fontWeight: 600, letterSpacing: '0.5px' }}>{m.label.toUpperCase()}</span>
+                  <IconComp size={18} color={config.color} />
+                </div>
+                <div style={{ fontSize: 'clamp(20px, 2vw, 28px)', fontWeight: 800, color: 'var(--text-primary)', fontFamily: '"Outfit", sans-serif', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                  {formatted}
+                </div>
+                {m.id.includes('revenue') || m.id.includes('watch') || m.id.includes('rpm') ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: telemetryColor, fontWeight: 700, background: `${telemetryColor}15`, padding: '4px 8px', borderRadius: '6px', width: 'fit-content' }}>
+                    <TrendingUp size={12} /> {telemetryLabel}
+                  </div>
+                ) : null}
               </div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)' }}>
-                {formatted}
-              </div>
-              <div style={{ fontSize: '11px', color: telemetryColor, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <TrendingUp size={12} /> {telemetryLabel}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
-      {/* Analytics Chart Section */}
-      {activeData?.chart_data !== undefined && (
-        <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              📈 {config.name} Channel View & Revenue Trajectory
+      {/* Main Charts area */}
+      {key === 'instagram' ? (
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px', marginBottom: '32px' }}>
+          <InstagramAccountGraph chartData={activeData.chart_data} isOAuth={activeData.is_oauth} />
+          <ContentMomentumPanel momentumSignals={activeData.momentum_signals} />
+        </div>
+      ) : activeData.chart_data && (
+        <div className="theme-card" style={{ padding: '24px', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <TrendingUp size={18} color={config.color} />
+              {config.name} Channel View & Revenue Trajectory
             </h3>
             <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Last 6 Months</span>
           </div>
@@ -331,7 +357,18 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
       )}
 
       {/* Top Videos Section (Conditional based on platform) */}
-      {key === 'youtube' && activeData?.recent_videos !== undefined ? (
+      {key === 'instagram' && activeData?.content_breakdown ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <ContentTypeComparison 
+            contentBreakdown={activeData.content_breakdown} 
+            insight={activeData.insight} 
+          />
+          <InstagramContentGrid 
+            recentMedia={activeData.recent_videos || []} 
+            isOAuth={activeData.is_oauth} 
+          />
+        </div>
+      ) : key === 'youtube' && activeData?.recent_videos !== undefined ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {activeData.recent_videos.length > 0 && (
             <LatestVideoPanel 

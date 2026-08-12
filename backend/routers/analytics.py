@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import User, CreatorProfile, SocialAccount, InstagramAccount, ContentLink
+from models import User, CreatorProfile, SocialAccount, InstagramAccount, ContentLink, InstagramMedia
 from Auth import verify_token
 from services.growth_service import GrowthService
 from services.analytics_service import AnalyticsService
@@ -25,12 +25,57 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
 
     p_clean = platform.lower()
     if p_clean == "instagram":
-        import hashlib
+        from services.instagram_service import InstagramService
+        ig_service = InstagramService()
+        
         # Check if connected via OAuth first
         acc = db.query(InstagramAccount).filter(InstagramAccount.user_id == db_user.id).first()
         if acc and acc.connected_status == "connected":
             from services.instagram_analytics_service import InstagramAnalyticsService
-            return InstagramAnalyticsService.get_live_profile_and_analytics(db_user.id, db)
+            oauth_data = InstagramAnalyticsService.get_live_profile_and_analytics(db_user.id, db)
+            
+            # Fetch media for intelligence
+            media_orm = db.query(InstagramMedia).filter(InstagramMedia.account_id == acc.id).order_by(InstagramMedia.timestamp.desc()).limit(20).all()
+            
+            media_dicts = []
+            for m in media_orm:
+                media_dicts.append({
+                    "media_id": m.media_id,
+                    "caption": m.caption,
+                    "media_type": m.media_type,
+                    "media_url": m.media_url,
+                    "thumbnail_url": m.thumbnail_url or m.media_url,
+                    "reach": m.reach,
+                    "video_views": m.video_views,
+                    "like_count": m.like_count,
+                    "comments_count": m.comments_count,
+                })
+                
+            intelligence = ig_service.compute_instagram_intelligence(media_dicts)
+            
+            return {
+                "connected": True,
+                "is_oauth": True,
+                "platform": "Instagram",
+                "channel_name": oauth_data["profile"]["name"] or oauth_data["profile"]["username"],
+                "custom_url": f"instagram.com/{oauth_data['profile']['username']}",
+                "thumbnail_url": oauth_data["profile"]["profile_picture_url"],
+                "description": oauth_data["profile"]["biography"],
+                "followers": oauth_data["analytics"]["followers"],
+                "follows_count": oauth_data["analytics"]["following"],
+                "media_count": oauth_data["analytics"]["media_count"],
+                "reach": oauth_data["analytics"]["reach"],
+                "impressions": oauth_data["analytics"]["impressions"],
+                "avg_engagement": oauth_data["analytics"]["avg_engagement"],
+                "chart_data": intelligence.get("chart_data", []),
+                "content_breakdown": intelligence.get("content_breakdown", {}),
+                "momentum_signals": intelligence.get("momentum_signals", []),
+                "saves_shares_intel": intelligence.get("saves_shares_intel", []),
+                "engagement_breakdown": intelligence.get("engagement_breakdown", {}),
+                "funnel": intelligence.get("funnel", {}),
+                "insight": intelligence.get("insight"),
+                "recent_videos": oauth_data.get("insights", []) # fallback for old code
+            }
 
         # Check if connected via SocialAccount handle in database
         profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == db_user.id).first()
@@ -64,29 +109,33 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
                 profile_pic = user_data.get("profile_pic_url_hd") or user_data.get("profile_pic_url")
                 
                 recent_edges = user_data.get("edge_owner_to_timeline_media", {}).get("edges", [])
-                recent_videos = []
-                for edge in recent_edges[:10]:
+                
+                # Fetch intelligence for public account based on recent edges
+                media_dicts = []
+                for edge in recent_edges[:12]:
                     node = edge.get("node", {})
-                    # If it's a video, use video views, else use None/0
                     is_video = node.get("is_video", False)
-                    video_views = node.get("video_view_count", 0) if is_video else 0
-                    likes = node.get("edge_liked_by", {}).get("count", 0)
-                    comments = node.get("edge_media_to_comment", {}).get("count", 0)
+                    media_type = "VIDEO" if is_video else "IMAGE"
                     caption_edges = node.get("edge_media_to_caption", {}).get("edges", [])
-                    title = caption_edges[0].get("node", {}).get("text", "Post")[:50] if caption_edges else "Instagram Post"
+                    title = caption_edges[0].get("node", {}).get("text", "") if caption_edges else ""
                     
-                    recent_videos.append({
-                        "id": node.get("id"),
-                        "title": title + "..." if len(title) == 50 else title,
-                        "date": "Recent",
-                        "duration": "N/A",
-                        "views": f"{video_views:,}" if video_views else "N/A (Image)",
-                        "likes": f"{likes:,}",
-                        "comments": f"{comments:,}"
+                    media_dicts.append({
+                        "media_id": node.get("id"),
+                        "caption": title,
+                        "media_type": media_type,
+                        "media_url": node.get("display_url"),
+                        "thumbnail_url": node.get("display_url"),
+                        "reach": node.get("video_view_count", 0) if is_video else 0, # we don't have reach for images publicly
+                        "video_views": node.get("video_view_count", 0) if is_video else 0,
+                        "like_count": node.get("edge_liked_by", {}).get("count", 0),
+                        "comments_count": node.get("edge_media_to_comment", {}).get("count", 0),
                     })
+                    
+                intelligence = ig_service.compute_instagram_intelligence(media_dicts)
 
                 return {
                     "connected": True,
+                    "is_oauth": False,
                     "platform": "Instagram",
                     "channel_name": user_data.get("full_name", f"@{clean_handle}"),
                     "custom_url": f"instagram.com/{clean_handle}",
@@ -100,7 +149,10 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
                     "impressions": None, # Strict: API doesn't provide this without OAuth
                     "avg_engagement": None, # Cannot accurately calculate without reach
                     "chart_data": [], # Strict: History not available on public endpoint
-                    "recent_videos": recent_videos
+                    "content_breakdown": intelligence.get("content_breakdown", {}),
+                    "momentum_signals": intelligence.get("momentum_signals", []),
+                    "insight": intelligence.get("insight"),
+                    "recent_videos": media_dicts
                 }
             elif res.status_code == 429:
                 raise HTTPException(status_code=429, detail="Instagram Rate Limit Exceeded. Try again later.")
@@ -321,6 +373,9 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
         
         # Connected account mode (assuming true OAuth if they connected via the new flow)
         profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == db_user.id).first()
+        
+        # Check if we have a real OAuth connection for YouTube (e.g. YouTubeAccount table if it existed)
+        # For now, we only have SocialAccount which is a public link.
         social_acc = db.query(SocialAccount).filter(SocialAccount.creator_id == profile.creator_id, SocialAccount.platform == "YouTube").first() if profile else None
         
         target_handle = social_acc.account_name if social_acc else ""
@@ -329,9 +384,8 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
             
         data = yt.get_channel_details(target_handle)
         
-        # For now, if they have a saved SocialAccount, we consider it "connected"
-        # We simulate is_oauth = True to unlock the deeper Analytics dashboard views
-        data["is_oauth"] = True
+        # SocialAccount is just a saved public search, so it is NOT an OAuth connection.
+        data["is_oauth"] = False
         data["connected"] = True
         return data
 

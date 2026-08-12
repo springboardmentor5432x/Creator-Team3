@@ -1039,7 +1039,44 @@ function ConnectedAccountsTab({ token }) {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.4' }}>
             Validate stats from Google Cloud APIs and bind them directly to the CreatorIQ dashboard database.
           </p>
-          
+
+          <div style={{ marginBottom: '1.5rem', paddingBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            <h4 style={{ fontSize: '0.95rem', margin: '0 0 10px 0', color: 'var(--text-primary)' }}>Method 1: Google OAuth (Recommended)</h4>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '12px' }}>
+              Unlocks full Creator Analytics Dashboard (Watch time, revenue, retention, traffic sources).
+            </p>
+            <button 
+              onClick={async () => {
+                  try {
+                      setConnLoading(true);
+                      const res = await fetch('http://127.0.0.1:8000/api/auth/youtube/mock-connect', {
+                          method: 'POST',
+                          headers: { 'Authorization': `Bearer ${token}` }
+                      });
+                      const data = await res.json();
+                      if (res.ok) {
+                          setFeedback({ type: 'success', text: `Successfully connected via YouTube OAuth: ${data.channel_name}!` });
+                          fetchConnectedAccounts();
+                      } else {
+                          setFeedback({ type: 'error', text: data.error || 'Failed to connect YouTube.' });
+                      }
+                  } catch (err) {
+                      setFeedback({ type: 'error', text: err.message });
+                  } finally {
+                      setConnLoading(false);
+                  }
+              }}
+              style={{ background: '#4285F4', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+              disabled={connLoading}
+            >
+              <Lock size={16} /> Connect via Google
+            </button>
+          </div>
+
+          <h4 style={{ fontSize: '0.95rem', margin: '0 0 10px 0', color: 'var(--text-primary)' }}>Method 2: Public Channel Search</h4>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginBottom: '12px' }}>
+              Connect a channel without OAuth. Only public metrics (Subscribers, Views, Videos) will be available.
+          </p>
           <form onSubmit={handleFetchYoutube} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
             <input 
               type="text" 

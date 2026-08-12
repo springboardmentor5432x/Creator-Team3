@@ -52,7 +52,30 @@ class YouTubeService:
             uploads_playlist_id = content_details.get("relatedPlaylists", {}).get("uploads")
             recent_videos = self._fetch_recent_videos(uploads_playlist_id)
 
-            # 3. Dynamic Monthly Chart Data based on Real Channel Views
+            # 3. Calculate Intelligence Metrics
+            avg_views = views / videos_count if videos_count > 0 else 0
+            
+            upload_gaps = []
+            import datetime
+            for i in range(len(recent_videos) - 1):
+                try:
+                    d1 = datetime.datetime.strptime(recent_videos[i]["published_at_full"], "%Y-%m-%dT%H:%M:%SZ")
+                    d2 = datetime.datetime.strptime(recent_videos[i+1]["published_at_full"], "%Y-%m-%dT%H:%M:%SZ")
+                    gap_days = abs((d1 - d2).days)
+                    upload_gaps.append(gap_days)
+                except Exception:
+                    pass
+                    
+            avg_gap = sum(upload_gaps) / len(upload_gaps) if upload_gaps else 7
+            consistency_score = max(0, 100 - (avg_gap * 2))
+
+            for v in recent_videos:
+                v["performance_score"] = int((v["raw_views"] / avg_views * 100)) if avg_views > 0 else 100
+                v["momentum"] = "🔥 Exploding" if v["performance_score"] > 150 else ("📈 Growing" if v["performance_score"] >= 80 else "📉 Underperforming")
+
+            channel_health = int((min(consistency_score, 100) + min(100, (views/1000000)*10) + 85) / 3)
+
+            # 4. Dynamic Monthly Chart Data based on Real Channel Views
             monthly_base = max(views // 36, 100000)
             chart_data = [
                 {"month": "Jan", "views": int(monthly_base * 0.75), "subscribers": int(subs * 0.90), "revenue": round((monthly_base * 0.75 / 1000.0) * estimated_rpm, 2)},
@@ -80,7 +103,12 @@ class YouTubeService:
                 "estimated_rpm": estimated_rpm,
                 "estimated_revenue": estimated_revenue,
                 "chart_data": chart_data,
-                "recent_videos": recent_videos
+                "recent_videos": recent_videos,
+                "intelligence": {
+                    "health_score": channel_health,
+                    "consistency_score": consistency_score,
+                    "average_gap_days": round(avg_gap, 1)
+                }
             }
 
         except Exception as e:
@@ -170,8 +198,28 @@ class YouTubeService:
                 like_c = int(v_stat.get("likeCount", 0))
                 comm_c = int(v_stat.get("commentCount", 0))
 
-                pub_at = v_snip.get("publishedAt", "")[:10]
+                pub_at_full = v_snip.get("publishedAt", "")
+                pub_at = pub_at_full[:10]
                 thumb = v_snip.get("thumbnails", {}).get("medium", {}).get("url") or v_snip.get("thumbnails", {}).get("default", {}).get("url", "")
+                
+                # Duration (e.g. PT4M33S)
+                duration_iso = v.get("contentDetails", {}).get("duration", "PT0S")
+                is_shorts = "M" not in duration_iso and "H" not in duration_iso and duration_iso.endswith("S") and int(duration_iso.replace("PT", "").replace("S", "") or 0) <= 60
+                content_type = "Shorts" if is_shorts else "Long Form"
+
+                # Calculate Velocity
+                import datetime
+                velocity = 0
+                try:
+                    if pub_at_full:
+                        pub_date = datetime.datetime.strptime(pub_at_full, "%Y-%m-%dT%H:%M:%SZ")
+                        hours_since = max((datetime.datetime.utcnow() - pub_date).total_seconds() / 3600, 1.0)
+                        velocity = int(view_c / hours_since)
+                except Exception:
+                    pass
+
+                # Engagement
+                engagement_rate = round(((like_c + comm_c) / view_c * 100), 2) if view_c > 0 else 0.0
 
                 recent_vids.append({
                     "id": v.get("id"),
@@ -181,8 +229,12 @@ class YouTubeService:
                     "likes": f"{like_c:,}",
                     "comments": f"{comm_c:,}",
                     "published_at": pub_at,
+                    "published_at_full": pub_at_full,
                     "thumbnail_url": thumb,
-                    "url": f"https://www.youtube.com/watch?v={v.get('id')}"
+                    "url": f"https://www.youtube.com/watch?v={v.get('id')}",
+                    "velocity_per_hour": velocity,
+                    "engagement_rate": engagement_rate,
+                    "content_type": content_type
                 })
 
             return recent_vids

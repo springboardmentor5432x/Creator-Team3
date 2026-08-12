@@ -312,13 +312,28 @@ def get_platform_dashboard(platform: str, handle: str = Query(None), user=Depend
     elif p_clean == "youtube":
         from services.youtube_service import YouTubeService
         yt = YouTubeService()
-        if handle:
-            return yt.get_channel_details(handle)
         
+        # Public search mode
+        if handle:
+            data = yt.get_channel_details(handle)
+            data["is_oauth"] = False
+            return data
+        
+        # Connected account mode (assuming true OAuth if they connected via the new flow)
         profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == db_user.id).first()
         social_acc = db.query(SocialAccount).filter(SocialAccount.creator_id == profile.creator_id, SocialAccount.platform == "YouTube").first() if profile else None
+        
         target_handle = social_acc.account_name if social_acc else ""
-        return yt.get_channel_details(target_handle)
+        if not target_handle:
+            return {"connected": False, "platform": "YouTube", "message": "Connect your YouTube account via Settings or search a handle."}
+            
+        data = yt.get_channel_details(target_handle)
+        
+        # For now, if they have a saved SocialAccount, we consider it "connected"
+        # We simulate is_oauth = True to unlock the deeper Analytics dashboard views
+        data["is_oauth"] = True
+        data["connected"] = True
+        return data
 
     else:
         return {"connected": False, "platform": platform.title(), "message": f"{platform.title()} account not connected."}

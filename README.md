@@ -341,7 +341,6 @@ My primary responsibility was **Backend API Development using Python and FastAPI
 * Implemented weekly, monthly, quarterly, and yearly reporting APIs.
 * Implemented PDF and Excel report generation/export.
 * Implemented growth comparison and audience summary APIs.
-* Implemented growth comparison and audience summary APIs.
 * Implemented performance alerts and revenue notification APIs.
 * Tested and verified backend APIs using Swagger UI.
 

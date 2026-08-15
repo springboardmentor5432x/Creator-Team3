@@ -297,7 +297,7 @@ The complete application workflow was tested from frontend interaction through b
 
 # Individual Contribution – Naga Sonali
 
-My primary responsibility was **Database Schema Designing and Social Media Integration**.
+My primary responsibility was **Database Schema Designing, Social Media Integration and Documentation**.
 
 ### Work Completed
 
@@ -313,9 +313,10 @@ My primary responsibility was **Database Schema Designing and Social Media Integ
 * Social media backend modules
 * Swagger API testing
 * Integration of social media modules with the main backend
+* Created overall documentation for the project.
 
 
-
+  
 ---
 
 # Git Milestone History

@@ -227,7 +227,7 @@ The project guide specifies earnings and sponsorship tracking, monetization repo
 
 ---
 
-# Milestone 4 – Testing, Deployment & Documentation
+# Milestone 4 – Testing & Documentation
 
 **Duration:** Week 7–8
 

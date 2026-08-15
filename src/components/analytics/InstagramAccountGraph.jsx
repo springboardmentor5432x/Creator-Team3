@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Eye, Heart, Users, ArrowUpRight, Lock } from 'lucide-react';
+import { Eye, Heart, Users, ArrowUpRight, Lock as LockIcon } from 'lucide-react';
 
 export default function InstagramAccountGraph({ chartData, isOAuth }) {
   const [activeMetric, setActiveMetric] = useState('reach');
@@ -65,7 +65,7 @@ export default function InstagramAccountGraph({ chartData, isOAuth }) {
             borderRadius: '12px',
             zIndex: 10
           }}>
-            <Lock size={32} color="var(--text-secondary)" style={{ marginBottom: '16px' }} />
+            <LockIcon size={32} color="var(--text-secondary)" style={{ marginBottom: '16px' }} />
             <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-primary)' }}>OAuth Required</h4>
             <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center', maxWidth: '300px' }}>
               Historical account performance requires connecting a professional Instagram account via Meta.

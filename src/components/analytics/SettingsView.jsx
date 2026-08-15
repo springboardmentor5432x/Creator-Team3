@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { User, Bell, Shield, Key, Link as LinkIcon, Trash2, Smartphone, Monitor, Globe, Mail, CheckCircle, Save, LogOut, ChevronRight, Lock as LockIcon } from 'lucide-react';
 
 const themesList = [
   { id: 'midnight', name: 'Slate Midnight', accent: '#3b82f6', bg: '#0b0f19', colors: ['#0b0f19', '#1e293b', '#3b82f6'] },
@@ -725,20 +726,30 @@ function ConnectedAccountsTab({ token }) {
   const handleConnectFacebook = async () => {
     setFbError('');
     setFbNotConfigured('');
+    
+    // Instead of full OAuth, we will use a simulated manual connect for the prototype
+    const handle = window.prompt("Enter your Facebook Page Handle to connect manually:", "nike");
+    if (!handle) return;
+    
     setFbConnectLoading(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth/facebook/connect', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch('http://127.0.0.1:8000/api/auth/facebook/simulate_connect', {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ handle })
       });
       const data = await res.json();
-      if (!data.configured) {
-        setFbNotConfigured(data.error || 'Meta Developer App is not configured on the backend.');
-        return;
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to simulate Facebook connection.');
       }
-      // Hand off to Facebook's official OAuth consent screen
-      window.location.href = data.authorization_url;
+      
+      setFeedback({ type: 'success', text: `Connected Facebook Page: ${data.page_name}!` });
+      fetchFacebookStatus();
     } catch (err) {
-      setFbError(err.message || 'Failed to start Facebook OAuth flow.');
+      setFbError(err.message || 'Failed to connect Facebook account.');
     } finally {
       setFbConnectLoading(false);
     }
@@ -1069,7 +1080,7 @@ function ConnectedAccountsTab({ token }) {
               style={{ background: '#4285F4', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
               disabled={connLoading}
             >
-              <Lock size={16} /> Connect via Google
+              <LockIcon size={16} /> Connect via Google
             </button>
           </div>
 

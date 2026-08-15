@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageCircle, Bookmark, Share2, PlaySquare, Layers, Lock } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark, Share2, PlaySquare, Layers, Lock as LockIcon, Image as ImageIcon } from 'lucide-react';
 
 export default function InstagramContentGrid({ recentMedia, isOAuth }) {
   const [activeTab, setActiveTab] = useState('ALL');
@@ -72,16 +72,20 @@ export default function InstagramContentGrid({ recentMedia, isOAuth }) {
           onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
           >
             {/* Thumbnail Header */}
-            <div style={{ position: 'relative', width: '100%', paddingBottom: '100%', background: '#111' }}>
+            <div style={{ position: 'relative', paddingTop: '100%', background: 'rgba(255,255,255,0.02)', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.1)' }}>
+                <ImageIcon size={48} />
+              </div>
               <img 
-                src={media.thumbnail_url || media.media_url || 'https://via.placeholder.com/400'} 
-                alt="Instagram Post"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                src={media.thumbnail_url || media.media_url} 
+                alt="Post thumbnail" 
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }}
+                onError={(e) => { e.target.style.opacity = '0'; }}
               />
               
               {/* Top Right Media Type Icon */}
               {getMediaIcon(media.media_type) && (
-                <div style={{ position: 'absolute', top: '12px', right: '12px', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}>
+                <div style={{ position: 'absolute', top: '12px', right: '12px', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.5))', zIndex: 2 }}>
                   {getMediaIcon(media.media_type)}
                 </div>
               )}
@@ -120,11 +124,11 @@ export default function InstagramContentGrid({ recentMedia, isOAuth }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', color: 'var(--text-primary)', fontSize: '13px', fontWeight: 600 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Bookmark size={14} color="var(--text-secondary)" />
-                    {!isOAuth ? <Lock size={12} color="var(--text-secondary)" /> : formatNumber(media.saved || 0)}
+                    {!isOAuth ? <LockIcon size={12} color="var(--text-secondary)" /> : formatNumber(media.saved || 0)}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Share2 size={14} color="var(--text-secondary)" />
-                    {!isOAuth ? <Lock size={12} color="var(--text-secondary)" /> : formatNumber(media.shares || 0)}
+                    {!isOAuth ? <LockIcon size={12} color="var(--text-secondary)" /> : formatNumber(media.shares || 0)}
                   </div>
                 </div>
 

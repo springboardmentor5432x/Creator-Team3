@@ -1,0 +1,19 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Local SQLite DB
+backend/creatoriq.db
+
+# Environment files
+*.env
+frontend/.env
+
+# Node modules and build outputs
+node_modules/
+dist/
+
+# OS / Editor
+.DS_Store
+.vscode/

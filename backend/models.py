@@ -27,6 +27,21 @@ class User(Base):
     sponsorship_deals = relationship("SponsorshipDeal", back_populates="user", cascade="all, delete-orphan")
     affiliate_products = relationship("AffiliateProduct", back_populates="user", cascade="all, delete-orphan")
     subscription_tiers = relationship("SubscriptionTier", back_populates="user", cascade="all, delete-orphan")
+    report_histories = relationship("ReportHistory", back_populates="user", cascade="all, delete-orphan")
+
+class ReportHistory(Base):
+    __tablename__ = "report_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    report_name = Column(String, nullable=False)
+    report_type = Column(String, nullable=False)
+    format = Column(String, nullable=False)
+    report_period = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    generated_date = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="report_histories")
 
 class CreatorProfile(Base):
     __tablename__ = "creator_profile"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, Shield, Mail, Trash2, CheckCircle, Lock, RefreshCw } from 'lucide-react';
+import { Users, UserPlus, Shield, Mail, Trash2, CheckCircle, Lock as LockIcon, RefreshCw } from 'lucide-react';
 
 const initialMembers = [
   {
@@ -184,7 +184,7 @@ export default function TeamWorkspaceView({ token }) {
                     </span>
                   </td>
                   <td style={{ padding: '12px', textAlign: 'center' }}>
-                    {m.role !== 'Admin / Owner' && (
+                    {m.role !== 'Admin / Owner' ? (
                       <button
                         type="button"
                         onClick={() => handleRemoveMember(m.id)}
@@ -198,6 +198,20 @@ export default function TeamWorkspaceView({ token }) {
                         title="Remove member"
                       >
                         <Trash2 size={16} />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--text-muted)',
+                          cursor: 'default',
+                          padding: '4px'
+                        }}
+                        title="Remove member"
+                      >
+                        <LockIcon size={20} />
                       </button>
                     )}
                   </td>

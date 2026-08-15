@@ -83,7 +83,12 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
     { id: 'ai_copilot', label: 'AI Copilot', icon: Bot },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'debug', label: 'System Debug', icon: Wrench }
-  ];
+  ].filter(item => {
+    if (item.id === 'team' || item.id === 'debug') {
+      return userRole && userRole.toLowerCase().includes('admin');
+    }
+    return true;
+  });
 
   return (
     <>

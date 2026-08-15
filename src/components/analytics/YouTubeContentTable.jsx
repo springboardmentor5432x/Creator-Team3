@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Play, Filter } from 'lucide-react';
 
-export function YouTubeContentTable({ recentVideos }) {
+export function YouTubeContentTable({ recentVideos, color = "#ff0000", platformName = "YouTube" }) {
   const [filterType, setFilterType] = useState('All');
 
   if (!recentVideos || recentVideos.length === 0) return null;
@@ -15,7 +15,7 @@ export function YouTubeContentTable({ recentVideos }) {
     <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Play size={20} color="#ff0000" /> Recent Content Performance
+          <Play size={20} color={color} /> Recent {platformName} Performance
         </h3>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, TrendingUp, TrendingDown, Clock, MessageSquare, Heart } from 'lucide-react';
 
-export function LatestVideoPanel({ video, channelAvgViews }) {
+export function LatestVideoPanel({ video, channelAvgViews, color = "#3b82f6", platformName = "Platform" }) {
   if (!video) return null;
 
   const isExploding = video.performance_score > 120;
@@ -11,7 +11,7 @@ export function LatestVideoPanel({ video, channelAvgViews }) {
     <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Play size={20} color="#ff0000" /> Latest Upload Performance
+          <Play size={20} color={color} /> Latest {platformName} Performance
         </h3>
         <div style={{ 
           background: isExploding ? 'rgba(34, 197, 94, 0.1)' : (isUnderperforming ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 255, 255, 0.1)'),

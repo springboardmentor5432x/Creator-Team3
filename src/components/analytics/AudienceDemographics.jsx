@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Lock } from 'lucide-react';
+import { Users, Lock as LockIcon } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export function AudienceDemographics({ isOAuth, mockData }) {
@@ -7,7 +7,7 @@ export function AudienceDemographics({ isOAuth, mockData }) {
     return (
       <div className="theme-card" style={{ padding: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '24px', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Lock size={24} color="#ef4444" />
+          <LockIcon size={24} color="#ef4444" />
         </div>
         <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>Demographics Locked</h3>
         <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: 0 }}>

@@ -14,6 +14,49 @@ router = APIRouter(prefix="/api/auth/facebook", tags=["Facebook OAuth"])
 class CallbackPayload(BaseModel):
     code: str
 
+class SimulatePayload(BaseModel):
+    handle: str
+
+@router.post("/simulate_connect")
+def simulate_connect(payload: SimulatePayload, user=Depends(verify_token), db: Session = Depends(get_db)):
+    from datetime import datetime
+    import hashlib
+    db_user = get_or_create_user_from_token(user, db)
+    
+    clean_handle = payload.handle.replace("@", "").strip()
+    if not clean_handle:
+        raise HTTPException(status_code=400, detail="Handle is required")
+        
+    seed = int(hashlib.md5(clean_handle.encode('utf-8')).hexdigest(), 16)
+    followers = 10000 + (seed % 5000000)
+    
+    acc = db.query(FacebookAccount).filter(FacebookAccount.user_id == db_user.id).first()
+    if not acc:
+        acc = FacebookAccount(user_id=db_user.id)
+        db.add(acc)
+        
+    acc.facebook_page_id = str(seed % 10000000)
+    acc.page_name = clean_handle.title()
+    acc.page_link = f"https://facebook.com/{clean_handle}"
+    acc.followers_count = followers
+    acc.category = "Public Figure"
+    acc.connected_status = "connected"
+    acc.last_synced_at = datetime.utcnow()
+    # also set access_token to empty string so it doesn't fail NOT NULL constraint if it has one
+    acc.access_token = ""
+    
+    profile = db.query(CreatorProfile).filter(CreatorProfile.user_id == db_user.id).first()
+    if profile:
+        s_acc = db.query(SocialAccount).filter(SocialAccount.creator_id == profile.creator_id, SocialAccount.platform == "Facebook").first()
+        if not s_acc:
+            s_acc = SocialAccount(creator_id=profile.creator_id, platform="Facebook")
+            db.add(s_acc)
+        s_acc.account_name = clean_handle
+        s_acc.profile_url = acc.page_link
+        
+    db.commit()
+    return {"message": "Simulated Facebook connection", "page_name": acc.page_name}
+
 
 @router.get("/connect")
 def connect_facebook_oauth(user=Depends(verify_token)):

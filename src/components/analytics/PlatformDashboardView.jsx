@@ -368,64 +368,25 @@ export default function PlatformDashboardView({ platformKey, token, setActiveTab
             isOAuth={activeData.is_oauth} 
           />
         </div>
-      ) : key === 'youtube' && activeData?.recent_videos !== undefined ? (
+      ) : activeData?.recent_videos !== undefined ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {activeData.recent_videos.length > 0 && (
             <LatestVideoPanel 
               video={activeData.recent_videos[0]} 
               channelAvgViews={activeData.views / (activeData.videos || 1)} 
+              color={config.color}
+              platformName={config.name}
             />
           )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
             <AudienceDemographics isOAuth={activeData.is_oauth} />
             <UploadHeatmap recentVideos={activeData.recent_videos} />
           </div>
-          <YouTubeContentTable recentVideos={activeData.recent_videos} />
-        </div>
-      ) : activeData?.recent_videos !== undefined ? (
-        <div className="theme-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-            🎬 Top Performing Channel Uploads
-          </h3>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {activeData.recent_videos.length > 0 ? activeData.recent_videos.map((vid) => (
-              <div
-                key={vid.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '14px 18px',
-                  borderRadius: '12px',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--border-color, rgba(255,255,255,0.08))'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: `${config.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Play size={18} color={config.color} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{vid.title}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      Published {vid.date} • Duration {vid.duration}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '13px' }}>
-                  <div><strong style={{ color: 'var(--text-primary)' }}>{vid.views}</strong> <span style={{ color: 'var(--text-secondary)' }}>views</span></div>
-                  <div><strong style={{ color: 'var(--text-primary)' }}>{vid.likes}</strong> <span style={{ color: 'var(--text-secondary)' }}>likes</span></div>
-                  <div><strong style={{ color: 'var(--text-primary)' }}>{vid.comments}</strong> <span style={{ color: 'var(--text-secondary)' }}>comments</span></div>
-                </div>
-              </div>
-            )) : (
-              <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                No recent videos found.
-              </div>
-            )}
-          </div>
+          <YouTubeContentTable 
+             recentVideos={activeData.recent_videos}
+             color={config.color}
+             platformName={config.name}
+          />
         </div>
       ) : null}
 

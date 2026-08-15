@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+/* ===========================
+   RECHARTS DARK THEME FIX
+=========================== */
+
+.recharts-cartesian-axis-tick-value,
+.recharts-cartesian-axis text,
+.recharts-layer text,
+.recharts-text,
+.recharts-label {
+    fill: #F8FAFC !important;
+    color: #F8FAFC !important;
+}
+
+.recharts-legend-item-text {
+    fill: #F8FAFC !important;
+    color: #F8FAFC !important;
+}
+
+.recharts-cartesian-axis-line,
+.recharts-cartesian-axis-tick-line {
+    stroke: rgba(255,255,255,.25) !important;
+}
+
+.recharts-cartesian-grid line {
+    stroke: rgba(255,255,255,.12) !important;
+}
+.recharts-legend-item-text {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+.recharts-tooltip-wrapper {
+  z-index: 9999 !important;
+}
+.custom-tooltip-box {
+  background: #0F172A !important;
+  border: 2px solid #475569 !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  color: white !important;
+  z-index: 99999 !important;
+}
+
+.custom-tooltip-title {
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  margin-bottom: 8px !important;
+}
+
+.custom-tooltip-item {
+  color: white !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  margin-top: 5px !important;
+}
+.recharts-legend-item text {
+  fill: #FFFFFF !important;
+}
+
+.recharts-legend-item-text {
+  fill: #FFFFFF !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+}

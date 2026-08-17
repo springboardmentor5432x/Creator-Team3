@@ -8,8 +8,8 @@ import RevenueGoalTracker from './RevenueGoalTracker';
 import RevenueAlerts from './RevenueAlerts';
 import AffiliateAnalytics from './AffiliateAnalytics';
 import SubscriptionAnalytics from './SubscriptionAnalytics';
-import SponsorshipTracker from './SponsorshipTracker';
 import DownloadReports from './DownloadReports';
+import RevenueDemographics from './RevenueDemographics';
 
 const UpgradedRevenueEngineView = ({ token }) => {
   const { chartColors } = useTheme();
@@ -349,20 +349,20 @@ const UpgradedRevenueEngineView = ({ token }) => {
         </div>
       </div>
 
-      <SponsorshipTracker token={token} />
-
       {/* Goal Tracker & Alerts */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <RevenueGoalTracker />
         <RevenueAlerts />
       </div>
 
-      <VideoRevenueTable />
+      <VideoRevenueTable token={token} />
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
         <AffiliateAnalytics token={token} />
         <SubscriptionAnalytics token={token} />
       </div>
+
+      <RevenueDemographics token={token} />
 
       <DownloadReports />
 

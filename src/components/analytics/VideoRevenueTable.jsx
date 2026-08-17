@@ -1,62 +1,97 @@
-import React from 'react';
-import { ArrowUpRight, ArrowDownRight, Video, DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowUpRight, ArrowDownRight, Video, Lock as LockIcon } from 'lucide-react';
 
-const videos = [
-  {
-    title: "AI Automation Guide 2026",
-    views: "2.1M",
-    watchTime: "180K hrs",
-    rpm: "$4.80",
-    cpm: "$6.30",
-    revenue: "$10,080",
-    growth: "up",
-  },
-  {
-    title: "Python FastAPI Backend Course",
-    views: "1.4M",
-    watchTime: "120K hrs",
-    rpm: "$5.20",
-    cpm: "$7.10",
-    revenue: "$7,280",
-    growth: "up",
-  },
-  {
-    title: "Data Science & ML Pipeline",
-    views: "900K",
-    watchTime: "80K hrs",
-    rpm: "$4.30",
-    cpm: "$6.00",
-    revenue: "$3,870",
-    growth: "down",
-  },
-  {
-    title: "React 19 & Tailwind Full Masterclass",
-    views: "760K",
-    watchTime: "72K hrs",
-    rpm: "$4.60",
-    cpm: "$6.50",
-    revenue: "$3,496",
-    growth: "up",
-  },
-  {
-    title: "Machine Learning Model Deployment",
-    views: "610K",
-    watchTime: "55K hrs",
-    rpm: "$4.10",
-    cpm: "$5.90",
-    revenue: "$2,501",
-    growth: "down",
-  },
-];
+export default function VideoRevenueTable({ token }) {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export default function VideoRevenueTable() {
+  useEffect(() => {
+    const fetchTopVideos = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/youtube/analytics/top-videos?max_results=5', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await res.json();
+        
+        if (!res.ok) {
+          throw new Error(result.detail || "Failed to fetch top videos");
+        }
+        
+        if (result.unavailable || result.connected === false) {
+          setVideos([]);
+        } else {
+          // Map backend data to table format
+          const formatted = result.data.map(v => {
+            const views = v.views || 0;
+            const watchTimeHours = ((v.estimatedMinutesWatched || 0) / 60).toFixed(1) + 'k hrs';
+            const revenue = v.estimatedRevenue || 0;
+            const cpm = v.cpm || 0;
+            const rpm = (views > 0) ? (revenue / (views / 1000)) : 0;
+            
+            return {
+              title: v.video || "Unknown Video",
+              views: (views > 1000000) ? (views / 1000000).toFixed(1) + 'M' : (views / 1000).toFixed(1) + 'K',
+              viewsRaw: views,
+              watchTime: watchTimeHours,
+              rpm: `$${rpm.toFixed(2)}`,
+              cpm: `$${cpm.toFixed(2)}`,
+              revenue: `$${revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+              revenueRaw: revenue,
+              growth: (revenue > 5000) ? 'up' : 'down' // Simplified trend logic based on revenue
+            };
+          });
+          setVideos(formatted);
+        }
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (token) {
+      fetchTopVideos();
+    }
+  }, [token]);
+
+  if (loading) {
+    return (
+      <div className="theme-card" style={{ padding: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '280px' }}>
+        <p style={{ color: 'var(--text-muted)' }}>Loading video revenue...</p>
+      </div>
+    );
+  }
+
+  if (!videos || videos.length === 0) {
+    return (
+      <div className="theme-card" style={{ padding: '32px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '24px', background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <LockIcon size={24} color="#ef4444" />
+        </div>
+        <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>Video Revenue Locked</h3>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '400px', margin: 0 }}>
+          Individual video earnings require a direct OAuth connection via YouTube Analytics API. Please connect your YouTube account in Settings.
+        </p>
+      </div>
+    );
+  }
+
+  const highestEarning = [...videos].sort((a, b) => b.revenueRaw - a.revenueRaw)[0];
+  const lowestEarning = [...videos].sort((a, b) => a.revenueRaw - b.revenueRaw)[0];
+  
+  const totalRev = videos.reduce((sum, v) => sum + v.revenueRaw, 0);
+  const totalViews = videos.reduce((sum, v) => sum + v.viewsRaw, 0);
+  const avgRpm = totalViews > 0 ? (totalRev / (totalViews / 1000)) : 0;
+
   return (
     <div className="theme-card" style={{ padding: '22px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Video size={18} color="var(--accent-primary)" />
-            Monetized Video Earnings Breakdown
+            Monetized Video Earnings Breakdown (Live)
           </h3>
           <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)' }}>
             Individual performance, RPM/CPM rates, and total generated revenue per video
@@ -68,7 +103,7 @@ export default function VideoRevenueTable() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border-primary)', color: 'var(--text-muted)' }}>
-              <th style={{ padding: '10px 12px' }}>Video Title</th>
+              <th style={{ padding: '10px 12px' }}>Video Title / ID</th>
               <th style={{ padding: '10px 12px', textAlign: 'center' }}>Views</th>
               <th style={{ padding: '10px 12px', textAlign: 'center' }}>Watch Time</th>
               <th style={{ padding: '10px 12px', textAlign: 'center' }}>RPM</th>
@@ -124,21 +159,21 @@ export default function VideoRevenueTable() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '24px' }}>
         <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Highest Earning Video</span>
-          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
-            AI Automation Guide 2026
+          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            {highestEarning ? highestEarning.title : 'N/A'}
           </div>
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>
-            $10,080
+            {highestEarning ? highestEarning.revenue : '$0'}
           </div>
         </div>
 
         <div style={{ padding: '16px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>Lowest Earning Video</span>
-          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px' }}>
-            Machine Learning Deployment
+          <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginTop: '4px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            {lowestEarning ? lowestEarning.title : 'N/A'}
           </div>
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#ef4444', marginTop: '2px' }}>
-            $2,501
+            {lowestEarning ? lowestEarning.revenue : '$0'}
           </div>
         </div>
 
@@ -148,7 +183,7 @@ export default function VideoRevenueTable() {
             Channel Average RPM
           </div>
           <div style={{ fontSize: '16px', fontWeight: 800, color: '#3b82f6', marginTop: '2px' }}>
-            $4.86
+            ${avgRpm.toFixed(2)}
           </div>
         </div>
       </div>

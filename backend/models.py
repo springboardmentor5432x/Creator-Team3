@@ -28,6 +28,7 @@ class User(Base):
     affiliate_products = relationship("AffiliateProduct", back_populates="user", cascade="all, delete-orphan")
     subscription_tiers = relationship("SubscriptionTier", back_populates="user", cascade="all, delete-orphan")
     report_histories = relationship("ReportHistory", back_populates="user", cascade="all, delete-orphan")
+    team_members = relationship("TeamMember", foreign_keys="[TeamMember.workspace_owner_id]", back_populates="workspace_owner", cascade="all, delete-orphan")
 
 class ReportHistory(Base):
     __tablename__ = "report_history"
@@ -537,3 +538,17 @@ class GrowthSnapshot(Base):
     views = Column(Integer, default=0)
     watch_time_hours = Column(Integer, default=0)
     engagement_rate = Column(Float, default=0.0)
+
+class TeamMember(Base):
+    __tablename__ = "team_members"
+
+    id = Column(Integer, primary_key=True, index=True)
+    workspace_owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    member_email = Column(String, nullable=False)
+    member_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    role = Column(String, nullable=False, default="Editor")
+    status = Column(String, nullable=False, default="Pending Invite")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    workspace_owner = relationship("User", foreign_keys=[workspace_owner_id], back_populates="team_members")
+    member_user = relationship("User", foreign_keys=[member_user_id])

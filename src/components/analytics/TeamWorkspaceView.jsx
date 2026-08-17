@@ -1,74 +1,105 @@
 import React, { useState } from 'react';
 import { Users, UserPlus, Shield, Mail, Trash2, CheckCircle, Lock as LockIcon, RefreshCw } from 'lucide-react';
 
-const initialMembers = [
-  {
-    id: 1,
-    name: 'Mukesh Kumar',
-    email: 'mukesh@creatoriq.app',
-    role: 'Admin / Owner',
-    status: 'Active',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150'
-  },
-  {
-    id: 2,
-    name: 'Sandhya Sharma',
-    email: 'sandhya@creatoriq.app',
-    role: 'Lead Analyst',
-    status: 'Active',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'
-  },
-  {
-    id: 3,
-    name: 'Lohitha R',
-    email: 'lohitha@creatoriq.app',
-    role: 'Content Manager',
-    status: 'Active',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150'
-  },
-  {
-    id: 4,
-    name: 'Chandan Kumar',
-    email: 'chandan@creatoriq.app',
-    role: 'Financial Editor',
-    status: 'Active',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
-  }
-];
-
 export default function TeamWorkspaceView({ token }) {
-  const [members, setMembers] = useState(initialMembers);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState('Editor');
   const [statusNotice, setStatusNotice] = useState('');
 
-  const handleInvite = (e) => {
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/team', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMembers(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch team members:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (token) fetchMembers();
+  }, [token]);
+
+  const handleInvite = async (e) => {
     e.preventDefault();
     if (!newEmail) return;
 
-    const newMember = {
-      id: Date.now(),
-      name: newEmail.split('@')[0],
-      email: newEmail,
-      role: newRole,
-      status: 'Pending Invite',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'
-    };
-
-    setMembers([...members, newMember]);
-    setNewEmail('');
-    setShowInviteModal(false);
-    setStatusNotice(`Invitation link successfully sent to ${newEmail}`);
-    setTimeout(() => setStatusNotice(''), 4000);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/team/invite', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: newEmail, role: newRole })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.detail || "Failed to invite user");
+        return;
+      }
+      
+      setStatusNotice(`Invitation link successfully sent to ${newEmail}`);
+      setNewEmail('');
+      setShowInviteModal(false);
+      fetchMembers(); // refresh list
+      setTimeout(() => setStatusNotice(''), 4000);
+    } catch (err) {
+      alert("Error inviting team member");
+    }
   };
 
-  const handleRemoveMember = (id) => {
-    setMembers(members.filter(m => m.id !== id));
+  const handleRemoveMember = async (id) => {
+    if (!window.confirm("Are you sure you want to remove this member?")) return;
+    
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/team/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        fetchMembers();
+      } else {
+        const data = await res.json();
+        alert(data.detail || "Failed to remove member");
+      }
+    } catch (err) {
+      alert("Error removing team member");
+    }
   };
 
-  const handleRoleChange = (id, role) => {
+  const handleRoleChange = async (id, role) => {
+    // Optimistic UI update
     setMembers(members.map(m => m.id === id ? { ...m, role } : m));
+    
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/team/${id}/role`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ role })
+      });
+      if (!res.ok) {
+        fetchMembers(); // revert if failed
+        const data = await res.json();
+        alert(data.detail || "Failed to update role");
+      }
+    } catch (err) {
+      fetchMembers(); // revert if failed
+      alert("Error updating role");
+    }
   };
 
   return (
@@ -127,7 +158,7 @@ export default function TeamWorkspaceView({ token }) {
       {/* Team Members List Table */}
       <div className="theme-card" style={{ padding: '22px' }}>
         <h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 700, color: 'var(--text-primary)' }}>
-          Active Workspace Members ({members.length})
+          Active Workspace Members ({loading ? "..." : members.length})
         </h3>
 
         <div style={{ overflowX: 'auto' }}>

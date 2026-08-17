@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from database import engine, Base
-from routers import user, admin, analytics, prediction, hashtag, social, notifications, revenue, links, ai, campaign, instagram, instagram_oauth, twitter_oauth, twitch_oauth, linkedin_oauth, facebook_oauth, youtube_oauth, debug
+from routers import user, admin, analytics, prediction, hashtag, social, notifications, revenue, links, ai, campaign, instagram, instagram_oauth, twitter_oauth, twitch_oauth, linkedin_oauth, facebook_oauth, youtube_oauth, debug, team, youtube
 from services.scheduler import start_scheduler
 
 app = FastAPI(title="CreatorIQ Integrated API", version="1.0.0")
@@ -39,8 +39,10 @@ app.include_router(revenue.router)
 app.include_router(links.router)
 app.include_router(ai.router)
 app.include_router(campaign.router)
+app.include_router(team.router)
 app.include_router(instagram.router)
 app.include_router(instagram_oauth.router)
+app.include_router(youtube.router)
 app.include_router(twitter_oauth.router)
 app.include_router(twitch_oauth.router)
 app.include_router(linkedin_oauth.router)

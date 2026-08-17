@@ -37,10 +37,13 @@ class RevenueEngine:
         youtube_subs = next((a.followers for a in accounts if a.platform == "YouTube"), int(total_followers * 0.6))
         instagram_followers = next((a.followers for a in accounts if a.platform == "Instagram"), int(total_followers * 0.35))
         
+        # Calculate engagement safely
         avg_engagement = (profile.engagement_rate if profile and profile.engagement_rate > 0 else 5.8) / 100.0
 
+        # Calculate monthly views
         total_views = sum(l.views for l in links) if links else total_followers * 18
         monthly_views = max(total_views // 3, 250000)
+        youtube_views = monthly_views * (youtube_subs / max(total_followers, 1))
 
         # 1. YouTube Ad Revenue
         cpm = setting.default_cpm
@@ -55,36 +58,38 @@ class RevenueEngine:
             elif "asia" in reg:
                 cpm = setting.cpm_asia
 
-        youtube_ad_revenue_monthly = (monthly_views / 1000.0) * cpm * setting.monetization_rate
+        # Only monetize YouTube views, not total cross-platform views
+        youtube_ad_revenue_monthly = (youtube_views / 1000.0) * cpm * setting.monetization_rate
 
-        # 2. Sponsorship Revenue
-        # Sponsorship = Followers * Engagement * Base Rate per follower
-        sponsorship_per_post = total_followers * avg_engagement * setting.sponsorship_rate_per_follower * 10
-        monthly_sponsorships = sponsorship_per_post * 2.5 # ~2.5 sponsored posts a month
+        # 2. Sponsorships (Usually YouTube integrated videos)
+        # Rate per follower adjusted by engagement bonus
+        sponsorship_per_post = youtube_subs * setting.sponsorship_rate_per_follower * (1 + (avg_engagement * 2))
+        monthly_sponsorships = sponsorship_per_post * 1.5 # ~1.5 sponsored videos a month
 
-        # 3. Affiliate Revenue
-        # Clicks = Views * CTR
+        # 3. Brand Collaborations (Usually Instagram / TikTok deals)
+        brand_deal_per_post = instagram_followers * setting.sponsorship_rate_per_follower * 1.2 * (1 + (avg_engagement * 2))
+        monthly_brand_deals = brand_deal_per_post * 2.0 # ~2 brand deals a month
+
+        # 4. Affiliate Revenue
+        # Clicks = Total Views * CTR
         affiliate_clicks = monthly_views * (setting.affiliate_ctr / 100.0)
         affiliate_conversions = affiliate_clicks * (setting.affiliate_conversion_rate / 100.0)
         avg_order_value = 45.0
         monthly_affiliate = affiliate_conversions * avg_order_value * (setting.affiliate_commission / 100.0)
 
-        # 4. Subscription Revenue
-        paying_members = youtube_subs * (setting.subscription_member_pct / 100.0)
+        # 5. Subscription Revenue (Patreon, YouTube Memberships, etc.)
+        paying_members = total_followers * (setting.subscription_member_pct / 100.0)
         monthly_subscriptions = paying_members * setting.subscription_price * (setting.subscription_retention / 100.0)
-
-        # 5. Brand Deals Revenue
-        creator_tier_multiplier = 1.4 if total_followers > 500000 else (1.2 if total_followers > 100000 else 1.0)
-        monthly_brand_deals = monthly_sponsorships * creator_tier_multiplier * 0.85
 
         # Totals
         total_monthly_est = (
             youtube_ad_revenue_monthly +
             monthly_sponsorships +
+            monthly_brand_deals +
             monthly_affiliate +
-            monthly_subscriptions +
-            monthly_brand_deals
+            monthly_subscriptions
         )
+        total_monthly_est = max(total_monthly_est, 1) # Prevent division by zero
         total_annual_est = total_monthly_est * 12.0
 
         # Confidence Score (based on accounts connected & links present)
@@ -104,14 +109,14 @@ class RevenueEngine:
         highest_source = max(sources, key=lambda s: s["amount"])
 
         # Platform distribution
-        yt_share = round(youtube_ad_revenue_monthly + (monthly_sponsorships * 0.55), 2)
-        ig_share = round((monthly_sponsorships * 0.45) + (monthly_brand_deals * 0.6) + (monthly_affiliate * 0.5), 2)
-        other_share = round(total_monthly_est - yt_share - ig_share, 2)
+        yt_share = youtube_ad_revenue_monthly + monthly_sponsorships + (monthly_affiliate * 0.6) + (monthly_subscriptions * 0.8)
+        ig_share = monthly_brand_deals + (monthly_affiliate * 0.4) + (monthly_subscriptions * 0.2)
+        other_share = max(0, total_monthly_est - yt_share - ig_share)
 
         platform_breakdown = [
-            {"platform": "YouTube", "amount": yt_share, "percentage": round((yt_share / total_monthly_est) * 100, 1)},
-            {"platform": "Instagram", "amount": ig_share, "percentage": round((ig_share / total_monthly_est) * 100, 1)},
-            {"platform": "Other Platforms", "amount": max(0, other_share), "percentage": max(0, round((other_share / total_monthly_est) * 100, 1))}
+            {"platform": "YouTube", "amount": round(yt_share, 2), "percentage": round((yt_share / total_monthly_est) * 100, 1)},
+            {"platform": "Instagram", "amount": round(ig_share, 2), "percentage": round((ig_share / total_monthly_est) * 100, 1)},
+            {"platform": "Other Platforms", "amount": round(other_share, 2), "percentage": round((other_share / total_monthly_est) * 100, 1)}
         ]
 
         # Monthly Trends (12 months estimated trajectory based on 5% MoM growth)

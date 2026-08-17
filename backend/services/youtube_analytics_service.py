@@ -235,16 +235,15 @@ class YouTubeAnalyticsService:
             "_meta": result["_meta"]
         }
 
-    # ── Top Videos ──
     @classmethod
     def get_top_videos(cls, access_token: str, start_date: str, end_date: str, max_results: int = 10) -> Dict[str, Any]:
         if not cls._is_valid_token(access_token):
-            return cls._unavailable("reports?dimensions=video", "views,estimatedMinutesWatched,likes,subscribersGained", "video")
+            return cls._unavailable("reports?dimensions=video", "views,estimatedMinutesWatched,estimatedRevenue,cpm", "video", requires_monetary=True)
 
         result = cls._make_request(access_token,
-            metrics="views,estimatedMinutesWatched,likes,subscribersGained",
+            metrics="views,estimatedMinutesWatched,estimatedRevenue,cpm",
             dimensions="video",
-            start_date=start_date, end_date=end_date, sort="-views", max_results=max_results)
+            start_date=start_date, end_date=end_date, sort="-estimatedRevenue", max_results=max_results)
 
         if result.get("unavailable"):
             return result
